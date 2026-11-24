@@ -63,7 +63,7 @@ type Alias = {
 }
 
 export type TagRatingStat = {
-  tag: Tag
+  tag: Pick<Tag, 'key'>
   solvedCount: number
   rating: number
   ratingByProblemsSum: number

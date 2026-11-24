@@ -20,6 +20,15 @@ export const profileCard = async (params: {
 
   const displayProgress = progress === 0 ? 0 : Math.max(progress, 10)
 
+  const avatarStyle = {
+    flexShrink: 0,
+    width: 76 * sizeConv,
+    height: 76 * sizeConv,
+    margin: 12 * sizeConv,
+    borderRadius: 12 * sizeConv,
+    boxShadow: `0px 0px ${5 * sizeConv}px ${2 * sizeConv}px ${tier.color}`,
+  }
+
   return await generate(
     <div
       style={{
@@ -31,22 +40,15 @@ export const profileCard = async (params: {
         fontSize: 14 * sizeConv,
       }}
     >
-      <img
-        src={
-          data.profileImageUrl ||
-          'https://static.solved.ac/misc/360x360/default_profile.png'
-        }
-        style={{
-          flexShrink: 0,
-          width: 76 * sizeConv,
-          height: 76 * sizeConv,
-          margin: 12 * sizeConv,
-          borderRadius: 12 * sizeConv,
-          boxShadow: `0px 0px ${5 * sizeConv}px ${2 * sizeConv}px ${
-            tier.color
-          }`,
-        }}
-      />
+      {/* ponytail: profileImageUrl is a data URI, or null when static.solved.ac refuses us */}
+      {data.profileImageUrl ? (
+        <img
+          src={data.profileImageUrl}
+          style={avatarStyle}
+        />
+      ) : (
+        <div style={{ ...avatarStyle, backgroundColor: tier.color }} />
+      )}
       <div
         style={{
           display: 'flex',

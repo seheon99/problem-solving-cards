@@ -5,13 +5,13 @@ import * as d3 from 'd3'
 
 const TAGS = [
   'math',
-  'implementation',
+  'impl',
   'greedy',
   'string',
-  'data_structures',
-  'graphs',
+  'ds',
+  'graph',
   'dp',
-  'geometry',
+  'geom',
 ]
 
 export const tagCard = async (params: {

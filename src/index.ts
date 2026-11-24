@@ -2,7 +2,7 @@ import { problemCard } from './cards/problems'
 import { profileCard } from './cards/profile'
 import { tagCard } from './cards/tags'
 import CacheManager from './structures/Cache'
-import RequestManager from './structures/Request'
+import RequestManager, { isValidHandle } from './structures/Request'
 import fastify from 'fastify'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
@@ -25,7 +25,7 @@ const cacheManager = new CacheManager(logger)
 const requestManager = new RequestManager(logger)
 
 app.get('/', async (_, reply) => {
-  reply.redirect('https://github.com/star0202/solvedac-cards')
+  reply.redirect('https://github.com/seheon99/solvedac-cards')
 })
 
 app.get('/favicon.ico', async (_, reply) => {
@@ -42,7 +42,8 @@ app.get('/profile/:handle', async (request, reply) => {
     color?: string
   }
 
-  if (!handle) return reply.code(400).send('No User ID Provided')
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
 
   if (color && color !== 'dark' && color !== 'light')
     return reply.code(400).send('Invalid Color, Must be dark or light')
@@ -79,7 +80,8 @@ app.get('/problems/:handle', async (request, reply) => {
     color?: string
   }
 
-  if (!handle) return reply.code(400).send('No User ID Provided')
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
 
   if (color && color !== 'dark' && color !== 'light')
     return reply.code(400).send('Invalid Color, Must be dark or light')
@@ -120,7 +122,8 @@ app.get('/tags/:handle', async (request, reply) => {
     text?: boolean
   }
 
-  if (!handle) return reply.code(400).send('No User ID Provided')
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
 
   if (color && color !== 'dark' && color !== 'light')
     return reply.code(400).send('Invalid Color, Must be dark or light')

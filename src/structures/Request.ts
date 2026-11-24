@@ -3,6 +3,24 @@ import axios from 'axios'
 import type { AxiosError, AxiosInstance } from 'axios'
 import type { FastifyBaseLogger } from 'fastify'
 
+const { SOLVEDAC_CLIENT_ID, SOLVEDAC_CLIENT_SECRET } = process.env
+if (!SOLVEDAC_CLIENT_ID || !SOLVEDAC_CLIENT_SECRET)
+  throw new Error('SOLVEDAC_CLIENT_ID and SOLVEDAC_CLIENT_SECRET must be set')
+
+// solved.ac handles are alphanumerics and underscores; anything else never reaches the API
+export const isValidHandle = (handle: string) => /^[A-Za-z0-9_]{1,64}$/.test(handle)
+
+type V4User = Omit<User, 'classDecoration'> & {
+  classPlus: boolean
+  tagRatings: (Omit<TagRatingStat, 'tag'> & { key: string })[]
+}
+
+type V4ProblemPage = {
+  total: number
+  pageSize: number
+  problems: { level: number }[]
+}
+
 export default class RequestManager {
   private rest: AxiosInstance
 
@@ -12,24 +30,23 @@ export default class RequestManager {
     this.logger = logger.child({ name: 'Request' })
 
     this.rest = axios.create({
-      baseURL: 'https://solved.ac/api/v3',
+      baseURL: 'https://solved.ac/api/v4',
       headers: {
-        Acccpt: 'application/json',
+        Accept: 'application/json',
+        'x-client-id': SOLVEDAC_CLIENT_ID,
+        'x-client-secret': SOLVEDAC_CLIENT_SECRET,
       },
     })
   }
 
-  async getUser(handle: string) {
-    this.logger.info(`GET /user/show?handle=${handle}`)
+  private async get<T>(path: string, params?: Record<string, string | number>) {
+    this.logger.info(`GET ${path}`)
 
     const { data } = await this.rest
-      .get<User>(`/user/show?handle=${handle}`)
+      .get<T>(path, { params })
       .catch((err: AxiosError | Error) => {
-        console.log(err)
-
-        if (!axios.isAxiosError(err)) throw err
-
-        if (err.response?.status === 404) return { data: null }
+        if (axios.isAxiosError(err) && err.response?.status === 404)
+          return { data: null }
 
         throw err
       })
@@ -37,39 +54,72 @@ export default class RequestManager {
     return data
   }
 
-  async getProblemStats(handle: string) {
-    this.logger.info(`GET /user/problem_stats?handle=${handle}`)
-
-    const { data } = await this.rest
-      .get<ProblemStat[]>(`/user/problem_stats?handle=${handle}`)
-      .catch((err: AxiosError | Error) => {
-        console.log(err)
-
-        if (!axios.isAxiosError(err)) throw err
-
-        if (err.response?.status === 404) return { data: null }
-
-        throw err
-      })
-
-    return data
+  private getV4User(handle: string) {
+    return this.get<V4User>(`/users/${encodeURIComponent(handle)}`)
   }
 
-  async getTagRatingStats(handle: string) {
-    this.logger.info(`GET /user/tag_ratings?handle=${handle}`)
+  async getUser(handle: string): Promise<User | null> {
+    const user = await this.getV4User(handle)
+    if (!user) return null
 
-    const { data } = await this.rest
-      .get<TagRatingStat[]>(`/user/tag_ratings?handle=${handle}`)
-      .catch((err: AxiosError | Error) => {
-        console.log(err)
+    // ponytail: v4 only says whether class has a plus, so "+" maps to silver
+    return {
+      ...user,
+      classDecoration: user.classPlus ? 'silver' : 'none',
+      profileImageUrl: await this.fetchImage(user.profileImageUrl),
+    }
+  }
 
-        if (!axios.isAxiosError(err)) throw err
+  // satori can't size an image it can't download, so inline it, or return null to draw a placeholder
+  private async fetchImage(url: string | null) {
+    if (!url) return null
 
-        if (err.response?.status === 404) return { data: null }
-
-        throw err
+    try {
+      const res = await axios.get<ArrayBuffer>(url, {
+        responseType: 'arraybuffer',
+        timeout: 5000,
       })
+      const type = res.headers['content-type']
+      if (!String(type).startsWith('image/')) return null
 
-    return data
+      return `data:${type};base64,${Buffer.from(res.data).toString('base64')}`
+    } catch {
+      return null
+    }
+  }
+
+  // v4 has no per-level stats endpoint: page through the user's solved problems and count levels.
+  // ponytail: one request per 50 solved problems; cache per handle if rate limits bite
+  async getProblemStats(handle: string): Promise<ProblemStat[] | null> {
+    if (!(await this.getV4User(handle))) return null
+
+    const solved = new Array<number>(31).fill(0)
+    for (let page = 1; ; page++) {
+      const data = await this.get<V4ProblemPage>('/problems', {
+        q: `s@${handle}`,
+        page,
+      })
+      if (!data) break
+
+      for (const { level } of data.problems) solved[level]++
+      if (data.problems.length < data.pageSize || page * data.pageSize >= data.total)
+        break
+    }
+
+    // tried/partial aren't available in v4; the card only draws solved counts
+    return solved.map((count, level) => ({
+      level,
+      solved: count,
+      tried: 0,
+      partial: 0,
+      total: count,
+    }))
+  }
+
+  async getTagRatingStats(handle: string): Promise<TagRatingStat[] | null> {
+    const user = await this.getV4User(handle)
+    if (!user) return null
+
+    return user.tagRatings.map(({ key, ...rest }) => ({ ...rest, tag: { key } }))
   }
 }
