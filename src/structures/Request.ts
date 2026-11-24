@@ -98,22 +98,17 @@ export default class RequestManager {
 
   // v4 has no per-level stats endpoint: page through the user's solved problems and count levels.
   // ponytail: one request per 50 solved problems; cache per handle if rate limits bite
-  // Callers check the user exists first; page 1 gives the total, the rest load in parallel.
+  // Callers check the user exists first. One search per level, reading only `total`,
+  // so the cost is 31 requests however many problems the user has solved.
   async getProblemStats(handle: string): Promise<ProblemStat[] | null> {
-    const fetchPage = (page: number) =>
-      this.get<V4ProblemPage>('/problems', { q: `s@${handle}`, page })
-
-    const first = await fetchPage(1)
-    if (!first) return null
-
-    const pageCount = Math.ceil(first.total / first.pageSize)
-    const rest = await Promise.all(
-      Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => fetchPage(i + 2)),
+    const totals = await Promise.all(
+      Array.from({ length: 31 }, (_, level) =>
+        this.get<V4ProblemPage>('/problems', { q: `s@${handle} *${level}`, page: 1 }),
+      ),
     )
+    if (totals.some((t) => !t)) return null
 
-    const solved = new Array<number>(31).fill(0)
-    for (const page of [first, ...rest])
-      for (const { level } of page?.problems ?? []) solved[level]++
+    const solved = totals.map((t) => t!.total)
 
     // tried/partial aren't available in v4; the card only draws solved counts
     return solved.map((count, level) => ({
