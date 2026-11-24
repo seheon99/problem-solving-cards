@@ -39,8 +39,15 @@ export default class RequestManager {
     })
   }
 
+  // ponytail: in-process 10-minute cache, unbounded keys; swap for an LRU if handle count grows
+  private cache = new Map<string, { at: number; data: unknown }>()
+
   private async get<T>(path: string, params?: Record<string, string | number>) {
-    this.logger.info(`GET ${path}`)
+    const key = `${path}?${new URLSearchParams(params as Record<string, string>)}`
+    const hit = this.cache.get(key)
+    if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.data as T | null
+
+    this.logger.info(`GET ${key}`)
 
     const { data } = await this.rest
       .get<T>(path, { params })
@@ -51,6 +58,7 @@ export default class RequestManager {
         throw err
       })
 
+    this.cache.set(key, { at: Date.now(), data })
     return data
   }
 
@@ -90,21 +98,22 @@ export default class RequestManager {
 
   // v4 has no per-level stats endpoint: page through the user's solved problems and count levels.
   // ponytail: one request per 50 solved problems; cache per handle if rate limits bite
+  // Callers check the user exists first; page 1 gives the total, the rest load in parallel.
   async getProblemStats(handle: string): Promise<ProblemStat[] | null> {
-    if (!(await this.getV4User(handle))) return null
+    const fetchPage = (page: number) =>
+      this.get<V4ProblemPage>('/problems', { q: `s@${handle}`, page })
+
+    const first = await fetchPage(1)
+    if (!first) return null
+
+    const pageCount = Math.ceil(first.total / first.pageSize)
+    const rest = await Promise.all(
+      Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => fetchPage(i + 2)),
+    )
 
     const solved = new Array<number>(31).fill(0)
-    for (let page = 1; ; page++) {
-      const data = await this.get<V4ProblemPage>('/problems', {
-        q: `s@${handle}`,
-        page,
-      })
-      if (!data) break
-
-      for (const { level } of data.problems) solved[level]++
-      if (data.problems.length < data.pageSize || page * data.pageSize >= data.total)
-        break
-    }
+    for (const page of [first, ...rest])
+      for (const { level } of page?.problems ?? []) solved[level]++
 
     // tried/partial aren't available in v4; the card only draws solved counts
     return solved.map((count, level) => ({
