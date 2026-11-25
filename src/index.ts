@@ -1,3 +1,4 @@
+import { leetcodeCard } from './cards/leetcode'
 import { problemCard } from './cards/problems'
 import { profileCard } from './cards/profile'
 import { ratingCard } from './cards/rating'
@@ -5,7 +6,10 @@ import { kstToday, streakCard, streakRange } from './cards/streak'
 import { summaryCard } from './cards/summary'
 import { tagCard } from './cards/tags'
 import CacheManager from './structures/Cache'
-import RequestManager, { isValidHandle } from './structures/Request'
+import RequestManager, {
+  isValidHandle,
+  isValidLeetCodeHandle,
+} from './structures/Request'
 import fastify from 'fastify'
 import { readFile } from 'fs/promises'
 import { join } from 'path'
@@ -28,7 +32,7 @@ const cacheManager = new CacheManager(logger)
 const requestManager = new RequestManager(logger)
 
 app.get('/', async (_, reply) => {
-  reply.redirect('https://github.com/seheon99/solvedac-cards')
+  reply.redirect('https://github.com/seheon99/problem-solving-cards')
 })
 
 app.get('/favicon.ico', async (_, reply) => {
@@ -242,6 +246,25 @@ app.get('/summary/:handle', async (request, reply) => {
     .type('image/svg+xml')
     .header('Cache-Control', 'public, max-age=0, must-revalidate')
     .send(await cacheManager.generateCachedCard({ user, ...opts }, summaryCard))
+})
+
+app.get('/leetcode/:handle', async (request, reply) => {
+  const { handle } = request.params as { handle?: string }
+  if (!handle || !isValidLeetCodeHandle(handle))
+    return reply.code(400).send('Invalid User ID')
+  const opts = parseCommon(request.query as object, 200, 1000, 200)
+  if (typeof opts === 'string') return reply.code(400).send(opts)
+
+  const stats = await requestManager.getLeetCode(handle)
+  if (!stats) return reply.code(404).send('User Not Found')
+
+  reply
+    .code(200)
+    .type('image/svg+xml')
+    .header('Cache-Control', 'public, max-age=0, must-revalidate')
+    .send(
+      await cacheManager.generateCachedCard({ stats, ...opts }, leetcodeCard),
+    )
 })
 
 app.listen({ port: 8000, host: '0.0.0.0' }, (err) => {

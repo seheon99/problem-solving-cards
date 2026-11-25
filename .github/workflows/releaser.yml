@@ -16,8 +16,8 @@ jobs:
     steps:
       - uses: seheon99/build-and-deploy@v1
         with:
-          service-name: solvedac-cards
-          registry: ghcr.io/${{ github.repository }}
+          service-name: ps-cards
+          registry: ghcr.io/seheon99/ps-cards
           dry-run: ${{ github.event_name == 'pull_request' }}
           ssh-host: ${{ secrets.SSH_HOST }}
           ssh-user: ${{ secrets.SSH_USER }}
