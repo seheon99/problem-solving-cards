@@ -1,4 +1,10 @@
-import type { ProblemStat, TagRatingStat, User } from '../types'
+import type {
+  Activity,
+  ProblemStat,
+  RatingPoint,
+  TagRatingStat,
+  User,
+} from '../types'
 import axios from 'axios'
 import type { AxiosError, AxiosInstance } from 'axios'
 import type { FastifyBaseLogger } from 'fastify'
@@ -151,5 +157,20 @@ export default class RequestManager {
       ...rest,
       tag: { key },
     }))
+  }
+
+  async getActivity(handle: string, from: string, to: string) {
+    return this.get<Activity>(
+      `/users/${encodeURIComponent(handle)}/activity/days`,
+      { from, to },
+    )
+  }
+
+  async getRatingHistory(handle: string): Promise<RatingPoint[] | null> {
+    const res = await this.get<{ history: RatingPoint[] }>(
+      `/users/${encodeURIComponent(handle)}/rating/history`,
+      { range: '1y' },
+    )
+    return res?.history ?? null
   }
 }

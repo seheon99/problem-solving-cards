@@ -79,3 +79,20 @@ export type Theme = {
   text: HexColorString
   sub: HexColorString
 }
+
+export type ActivityDay = {
+  day: string // YYYY-MM-DD
+  solvedCount: number
+  maxSolvedLevel: number
+  freezeUsed: boolean
+}
+
+export type Activity = {
+  from: string
+  to: string
+  days: ActivityDay[]
+  currentStreak: number
+  maxStreak: number
+}
+
+export type RatingPoint = { day: string; value: number }
