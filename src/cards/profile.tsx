@@ -86,7 +86,19 @@ export const profileCard = async (params: {
       {data.profileImageUrl ? (
         <img src={data.profileImageUrl} style={avatar} />
       ) : (
-        <div style={{ ...avatar, display: 'flex', backgroundColor: mantle }} />
+        <div
+          style={{
+            ...avatar,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: mantle,
+            color: muted,
+            fontSize: 32 * scale,
+          }}
+        >
+          {data.handle[0]?.toUpperCase()}
+        </div>
       )}
       <div
         style={{

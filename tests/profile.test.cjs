@@ -49,3 +49,23 @@ test('animates the card and tier bar', async () => {
   assert.ok(svg.includes('[fill^="url(#satori_pattern"]'))
   assert.match(svg, /<path[^>]*fill="url\(#satori_pattern/)
 })
+
+test('shows the profile image, or the handle initial without one', async (t) => {
+  const img = 'data:image/png;base64,iVBORw0KGgo='
+  const renderer = require('../src/cards')
+  t.mock.method(renderer, 'generate', async (el) => JSON.stringify(el))
+  assert.ok(
+    (
+      await profileCard({
+        data: { ...user, profileImageUrl: img },
+        size: 100,
+        isDark: true,
+      })
+    ).includes(img),
+  )
+  assert.ok(
+    (await profileCard({ data: user, size: 100, isDark: true })).includes(
+      '"children":"S"',
+    ),
+  )
+})
