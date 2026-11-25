@@ -2,8 +2,6 @@ import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
 
-const MASTER_GRADIENT = 'linear-gradient(90deg, #ff7ca8, #b491ff, #7cf9ff)'
-
 export const profileCard = async (params: {
   data: User
   size: number
@@ -27,13 +25,10 @@ export const profileCard = async (params: {
         ),
       )
     : 100
-  const accent = isMaster
-    ? {
-        backgroundImage: MASTER_GRADIENT,
-        backgroundClip: 'text',
-        color: 'transparent',
-      }
-    : { color: data.tier === 0 ? muted : tier.color }
+  // ponytail: satori doesn't clip gradient text reliably, so Master uses a solid colour
+  const accent = {
+    color: isMaster ? '#b491ff' : data.tier === 0 ? muted : tier.color,
+  }
   const plus =
     data.classDecoration === 'gold'
       ? '++'
