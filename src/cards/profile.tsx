@@ -2,30 +2,94 @@ import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
 
-// Count-up: satori draws text as paths and keeps `opacity`, so each frame of the
-// rating is a stacked copy tagged with a unique near-invisible opacity that CSS
-// flashes to 1 in turn. The real rating is tagged 0.999 and hidden until the end.
-// Without CSS (or with reduced motion) only the real rating is visible.
+// ponytail: satori can't emit animation, so CSS/SVG is spliced into its output.
+// satori copies `opacity` onto every node it draws for an element (multiplying
+// through nesting), so elements are tagged with unique opacities as CSS hooks.
+// Tags near 1 are visually identical; tags near 0 stay hidden without CSS.
 const FRAMES = 12
-const frameOpacity = (i: number) => String((i + 1) / 1000)
+const frameTag = (i: number) => String((i + 1) / 1000) // count-up frames
+const TAG = {
+  rating: 0.999,
+  bar: 0.997,
+  tier: 0.995,
+  tiles: [0.991, 0.992, 0.993, 0.994],
+  flame: 0.98,
+  shine: 0.021,
+}
+const flameTag = String(TAG.tiles[3] * TAG.flame)
+const SHINE = 18 // shine band width
+const DONE = 1.5 // count-up and bar finish here (s)
 
-// ponytail: satori can't emit animation, so CSS is spliced into its output.
-// The tier bar is the only element filled with a satori gradient pattern.
-const ANIMATION = `<style>
+const animation = (o: {
+  scale: number
+  ring: string
+  glow: boolean
+  master: boolean
+  travel: number
+}) => {
+  const s = o.scale
+  return `<style>
 @keyframes fade{from{opacity:0;transform:translateY(6px)}}
 @keyframes grow{from{transform:scaleX(0)}}
-svg>*{animation:fade .6s ease-out both}
-[fill^="url(#satori_pattern"]{transform-box:fill-box;transform-origin:left;animation:grow 1.2s .3s cubic-bezier(.2,.8,.2,1) both}
 @keyframes show{from,to{opacity:1}}
 @keyframes hide{from,to{opacity:0}}
-[opacity="0.999"]{animation:hide 1.5s}
+@keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.15)}}
+@keyframes draw{from{stroke-dashoffset:1}}
+@keyframes shine{0%{opacity:0;transform:none}20%{opacity:1}40%,100%{opacity:0;transform:translateX(${
+    o.travel
+  }px)}}
+@keyframes flicker{0%,100%{transform:scale(1) rotate(0)}25%{transform:scale(1.08,.94) rotate(-4deg)}50%{transform:scale(.95,1.08) rotate(3deg)}75%{transform:scale(1.04,.98) rotate(-2deg)}}
+svg>*{animation:fade .6s ease-out both}
+[opacity="${
+    TAG.bar
+  }"]{transform-box:fill-box;transform-origin:left;animation:grow 1.2s .3s cubic-bezier(.2,.8,.2,1) both${
+    o.master ? ';filter:url(#hue)' : ''
+  }}
+[opacity="${TAG.rating}"]{animation:hide ${DONE}s}
 ${Array.from(
   { length: FRAMES },
-  (_, i) =>
-    `[opacity="${frameOpacity(i)}"]{animation:show .1s ${0.3 + i * 0.1}s}`,
+  (_, i) => `[opacity="${frameTag(i)}"]{animation:show .1s ${0.3 + i * 0.1}s}`,
 ).join('\n')}
-@media (prefers-reduced-motion:reduce){*{animation:none!important}}
-</style>`
+[opacity="${
+    TAG.tier
+  }"]{transform-box:fill-box;transform-origin:center;animation:pop .5s ${DONE}s both}
+${TAG.tiles
+  .map(
+    (t, i) =>
+      `[opacity="${t}"]{animation:fade .4s ${DONE + 0.15 + i * 0.08}s both}`,
+  )
+  .join('\n')}
+[opacity="${flameTag}"]{transform-box:fill-box;transform-origin:50% 90%;animation:fade .4s ${
+    DONE + 0.39
+  }s both,flicker 1.2s ${DONE + 0.8}s ease-in-out infinite}
+[opacity="${TAG.shine}"]{animation:shine 4s ${DONE + 0.5}s ease-in-out infinite}
+#ring{animation:draw 1.2s .3s cubic-bezier(.2,.8,.2,1) both${
+    o.glow ? ';filter:url(#glow)' : ''
+  }}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;filter:none!important}}
+</style><defs>
+<filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="${
+    2 * s
+  }" flood-color="${
+    o.ring
+  }"><animate attributeName="stdDeviation" values="${s};${
+    4 * s
+  };${s}" dur="2.5s" repeatCount="indefinite"/></feDropShadow></filter>
+<filter id="hue"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" from="0" to="360" dur="6s" repeatCount="indefinite"/></feColorMatrix></filter>
+</defs>`
+}
+
+// Ring traced over the avatar border; position follows the card's padding + border.
+const ringRect = (s: number, color: string) =>
+  `<rect id="ring" x="${14 * s}" y="${13 * s}" width="${74 * s}" height="${
+    74 * s
+  }" rx="${11 * s}" fill="none" stroke="${color}" stroke-width="${
+    2 * s
+  }" pathLength="1" stroke-dasharray="1"/>`
+
+// Small flame for the streak tile (24x24 viewBox).
+const FLAME =
+  'M12 2c1 3.5 5 6 5 11a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.6 1.2 2.5 2.2 2.8C10.5 8.5 11 5 12 2z'
 
 export const profileCard = async (params: {
   data: User
@@ -60,6 +124,9 @@ export const profileCard = async (params: {
       : data.classDecoration === 'silver'
       ? '+'
       : ''
+  const ring = isMaster ? '#b491ff' : data.tier === 0 ? border : tier.color
+  const fillWidth = (246 * scale * progress) / 100
+  const shine = fillWidth > 3 * SHINE * scale
   const fmt = (n: number) => n.toLocaleString('en-US')
 
   const stats: [string, string, string?][] = [
@@ -78,7 +145,7 @@ export const profileCard = async (params: {
     height: 76 * scale,
     flexShrink: 0,
     borderRadius: 12 * scale,
-    border: `${2 * scale}px solid ${isMaster ? '#b491ff' : tier.color}`,
+    border: `${2 * scale}px solid transparent`,
   }
 
   const svg = await generate(
@@ -143,7 +210,14 @@ export const profileCard = async (params: {
           >
             {data.handle}
           </span>
-          <span style={{ fontSize: 11 * scale, flexShrink: 0, ...accent }}>
+          <span
+            style={{
+              fontSize: 11 * scale,
+              flexShrink: 0,
+              opacity: TAG.tier,
+              ...accent,
+            }}
+          >
             {tier.name}
           </span>
         </div>
@@ -158,7 +232,9 @@ export const profileCard = async (params: {
             }}
           >
             <div style={{ display: 'flex', position: 'relative' }}>
-              <span style={{ fontSize: 18 * scale, opacity: 0.999, ...accent }}>
+              <span
+                style={{ fontSize: 18 * scale, opacity: TAG.rating, ...accent }}
+              >
                 {fmt(data.rating)}
               </span>
               {data.rating > 0 &&
@@ -170,7 +246,7 @@ export const profileCard = async (params: {
                       left: 0,
                       bottom: 0,
                       fontSize: 18 * scale,
-                      opacity: Number(frameOpacity(i)),
+                      opacity: Number(frameTag(i)),
                       ...accent,
                     }}
                   >
@@ -188,6 +264,7 @@ export const profileCard = async (params: {
           <div
             style={{
               display: 'flex',
+              position: 'relative',
               height: 5 * scale,
               borderRadius: 3 * scale,
               backgroundColor: isDark ? crust : mantle,
@@ -201,16 +278,33 @@ export const profileCard = async (params: {
                   width: `${progress}%`,
                   borderRadius: 3 * scale,
                   backgroundImage: tier.gradient,
+                  opacity: TAG.bar,
+                }}
+              />
+            )}
+            {shine && (
+              <div
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  width: SHINE * scale,
+                  height: 5 * scale,
+                  borderRadius: 3 * scale,
+                  backgroundColor: 'rgba(255,255,255,0.7)',
+                  opacity: TAG.shine,
                 }}
               />
             )}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 4 * scale }}>
-          {stats.map(([label, value, color]) => (
+          {stats.map(([label, value, color], i) => (
             <div
               key={label}
               style={{
+                position: 'relative',
+                opacity: TAG.tiles[i],
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -225,6 +319,21 @@ export const profileCard = async (params: {
               <span style={{ fontSize: 10 * scale, color: color ?? text }}>
                 {value}
               </span>
+              {i === 3 && data.maxStreak > 0 && (
+                <svg
+                  width={8 * scale}
+                  height={8 * scale}
+                  viewBox="0 0 24 24"
+                  style={{
+                    position: 'absolute',
+                    top: 2 * scale,
+                    right: 3 * scale,
+                    opacity: TAG.flame,
+                  }}
+                >
+                  <path d={FLAME} fill="#ff8a00" />
+                </svg>
+              )}
             </div>
           ))}
         </div>
@@ -232,5 +341,14 @@ export const profileCard = async (params: {
     </div>,
     size,
   )
-  return svg.replace(/^<svg[^>]*>/, (open) => open + ANIMATION)
+  const css = animation({
+    scale,
+    ring,
+    glow: data.tier >= 21, // Diamond and up
+    master: isMaster,
+    travel: fillWidth - SHINE * scale,
+  })
+  return svg
+    .replace(/^<svg[^>]*>/, (open) => open + css)
+    .replace(/<\/svg>$/, ringRect(scale, ring) + '</svg>')
 }

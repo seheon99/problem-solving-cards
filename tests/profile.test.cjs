@@ -43,11 +43,23 @@ test('content stays inside the card for every tier', async () => {
   }
 })
 
-test('animates the card and tier bar', async () => {
-  const svg = await profileCard({ data: user, size: 100, isDark: true })
+test('every animation hook lands on a rendered element', async () => {
+  const diamond = { ...user, tier: 21, rating: 2250, maxStreak: 42 }
+  const svg = await profileCard({ data: diamond, size: 100, isDark: true })
   assert.match(svg, /^<svg[^>]*><style>/)
-  assert.ok(svg.includes('[fill^="url(#satori_pattern"]'))
-  assert.match(svg, /<path[^>]*fill="url\(#satori_pattern/)
+  const tags = [...svg.matchAll(/\[opacity="([^"]+)"\]/g)].map(([, t]) => t)
+  assert.ok(tags.length >= 12 + 8)
+  for (const t of tags)
+    assert.match(svg, new RegExp(`<(path|g|rect|image)[^>]* opacity="${t}"`), t)
+  assert.match(svg, /<rect id="ring"[^>]*\/><\/svg>$/)
+  assert.ok(svg.includes('filter:url(#glow)'), 'diamond glows')
+  assert.ok(!svg.includes('filter:url(#hue)'), 'only master shifts hue')
+  const master = await profileCard({
+    data: { ...user, tier: 31, rating: 3150 },
+    size: 100,
+    isDark: true,
+  })
+  assert.ok(master.includes('filter:url(#hue)'))
 })
 
 test('shows the profile image, or the handle initial without one', async (t) => {
