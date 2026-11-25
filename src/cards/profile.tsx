@@ -355,7 +355,7 @@ export const profileCard = async (params: {
     .replace(
       /<\/svg>$/,
       ringRect(scale, ring) +
-        badgeSvg(data.tier, 68 * scale, 62 * scale, 24 * scale) +
+        badgeSvg(data.tier, 60 * scale, 62 * scale, 34 * scale) +
         '</svg>',
     )
 }
