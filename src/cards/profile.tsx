@@ -129,7 +129,8 @@ export const profileCard = async (params: {
   const ring = isMaster ? '#b491ff' : data.tier === 0 ? border : tier.color
   const fillWidth = (246 * scale * progress) / 100
   const shine = fillWidth > 3 * SHINE * scale
-  const fmt = (n: number) => n.toLocaleString('en-US')
+  // solved.ac v4 can omit fields (live crash on rank/maxStreak); show a dash instead
+  const fmt = (n?: number) => (n == null ? '–' : n.toLocaleString('en-US'))
 
   const stats: [string, string, string?][] = [
     ['푼 문제', fmt(data.solvedCount)],
@@ -138,8 +139,8 @@ export const profileCard = async (params: {
       `${data.class}${plus}`,
       data.class ? classMapping.get(data.class) : muted,
     ],
-    ['순위', `#${fmt(data.rank)}`],
-    ['스트릭', `${fmt(data.maxStreak)}일`],
+    ['순위', data.rank == null ? '–' : `#${fmt(data.rank)}`],
+    ['스트릭', data.maxStreak == null ? '–' : `${fmt(data.maxStreak)}일`],
   ]
 
   const avatar = {
@@ -321,7 +322,7 @@ export const profileCard = async (params: {
               <span style={{ fontSize: 10 * scale, color: color ?? text }}>
                 {value}
               </span>
-              {i === 3 && data.maxStreak > 0 && (
+              {i === 3 && (data.maxStreak ?? 0) > 0 && (
                 <svg
                   width={8 * scale}
                   height={8 * scale}

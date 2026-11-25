@@ -75,13 +75,30 @@ export default class RequestManager {
     return this.get<V4User>(`/users/${encodeURIComponent(handle)}`)
   }
 
+  // v4 users carry no rank; the rankings search does. A failed lookup just leaves rank unset.
+  private async getRank(handle: string) {
+    const res = await this.get<{
+      exact: { handle: string; rank: number } | null
+    }>('/rankings/users/search', { q: handle, sort: 'rating' }).catch(
+      () => null,
+    )
+    const exact = res?.exact
+    return exact && exact.handle.toLowerCase() === handle.toLowerCase()
+      ? exact.rank
+      : undefined
+  }
+
   async getUser(handle: string): Promise<User | null> {
-    const user = await this.getV4User(handle)
+    const [user, rank] = await Promise.all([
+      this.getV4User(handle),
+      this.getRank(handle),
+    ])
     if (!user) return null
 
     // ponytail: v4 only says whether class has a plus, so "+" maps to silver
     return {
       ...user,
+      rank,
       classDecoration: user.classPlus ? 'silver' : 'none',
       profileImageUrl: await this.fetchImage(user.profileImageUrl),
     }
