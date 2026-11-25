@@ -17,8 +17,8 @@ Pick a card below, copy its snippet, and replace `HANDLE` with your solved.ac or
 ## Profile
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/solvedac/profile/seheon99?color=light&size=150">
-  <img alt="Profile card" src="https://ps-cards.seheon.kr/solvedac/profile/seheon99?size=150">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/solvedac/profile/seheon99?color=light">
+  <img alt="Profile card" src="https://ps-cards.seheon.kr/solvedac/profile/seheon99">
 </picture>
 
 Your tier crest, handle, rating and progress to the next tier, with tiles for solved count, class, rank and longest streak.
@@ -30,7 +30,7 @@ Your tier crest, handle, rating and progress to the next tier, with tiles for so
 ![Profile](https://ps-cards.seheon.kr/solvedac/profile/HANDLE)
 ```
 
-360×100px by default; `size` sets the height from 100 to 500.
+720×200px by default, the same width as the Summary and Streak cards; `size` sets the height from 100 to 1000.
 
 ## Tags
 
@@ -123,7 +123,7 @@ The "다음 점수까지" count appears only while the bonus formula matches the
 ![Summary](https://ps-cards.seheon.kr/solvedac/summary/HANDLE)
 ```
 
-704×200px by default; `size` sets the height from 200 to 1000.
+720×200px by default; `size` sets the height from 200 to 1000.
 
 ## LeetCode
 

@@ -178,6 +178,10 @@ export const profileCard = async (params: {
           <span
             style={{
               fontSize: 15 * scale,
+              // fill the row so the handle only truncates when it truly doesn't fit
+              flexGrow: 1,
+              flexShrink: 1,
+              minWidth: 0,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',

@@ -117,7 +117,7 @@ export const summaryCard = async (params: {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: 704 * scale,
+        width: 720 * scale,
         height: size,
         padding: 15 * scale,
         gap: 10 * scale,
