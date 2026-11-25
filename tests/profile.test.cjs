@@ -69,3 +69,25 @@ test('shows the profile image, or the handle initial without one', async (t) => 
     ),
   )
 })
+
+test('rating counts up through tagged frames', async () => {
+  const svg = await profileCard({ data: user, size: 100, isDark: true })
+  assert.equal(
+    (svg.match(/<path[^>]*opacity="0\.999"/g) || []).length > 0,
+    true,
+  )
+  for (let i = 1; i <= 12; i++) {
+    const tag = String(i / 1000)
+    assert.ok(svg.includes(`opacity="${tag}"`), `frame ${tag} rendered`)
+    assert.ok(
+      svg.includes(`[opacity="${tag}"]{animation:show`),
+      `frame ${tag} styled`,
+    )
+  }
+  const unrated = await profileCard({
+    data: { ...user, rating: 0, tier: 0 },
+    size: 100,
+    isDark: true,
+  })
+  assert.doesNotMatch(unrated, /<path[^>]*opacity="0.001"/)
+})

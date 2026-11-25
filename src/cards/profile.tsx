@@ -2,6 +2,13 @@ import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
 
+// Count-up: satori draws text as paths and keeps `opacity`, so each frame of the
+// rating is a stacked copy tagged with a unique near-invisible opacity that CSS
+// flashes to 1 in turn. The real rating is tagged 0.999 and hidden until the end.
+// Without CSS (or with reduced motion) only the real rating is visible.
+const FRAMES = 12
+const frameOpacity = (i: number) => String((i + 1) / 1000)
+
 // ponytail: satori can't emit animation, so CSS is spliced into its output.
 // The tier bar is the only element filled with a satori gradient pattern.
 const ANIMATION = `<style>
@@ -9,6 +16,14 @@ const ANIMATION = `<style>
 @keyframes grow{from{transform:scaleX(0)}}
 svg>*{animation:fade .6s ease-out both}
 [fill^="url(#satori_pattern"]{transform-box:fill-box;transform-origin:left;animation:grow 1.2s .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes show{from,to{opacity:1}}
+@keyframes hide{from,to{opacity:0}}
+[opacity="0.999"]{animation:hide 1.5s}
+${Array.from(
+  { length: FRAMES },
+  (_, i) =>
+    `[opacity="${frameOpacity(i)}"]{animation:show .1s ${0.3 + i * 0.1}s}`,
+).join('\n')}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
 </style>`
 
@@ -142,9 +157,28 @@ export const profileCard = async (params: {
               justifyContent: 'space-between',
             }}
           >
-            <span style={{ fontSize: 18 * scale, ...accent }}>
-              {fmt(data.rating)}
-            </span>
+            <div style={{ display: 'flex', position: 'relative' }}>
+              <span style={{ fontSize: 18 * scale, opacity: 0.999, ...accent }}>
+                {fmt(data.rating)}
+              </span>
+              {data.rating > 0 &&
+                Array.from({ length: FRAMES }, (_, i) => (
+                  <span
+                    key={i}
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      bottom: 0,
+                      fontSize: 18 * scale,
+                      opacity: Number(frameOpacity(i)),
+                      ...accent,
+                    }}
+                  >
+                    {/* ease-out cubic */}
+                    {fmt(Math.round(data.rating * (1 - (1 - i / FRAMES) ** 3)))}
+                  </span>
+                ))}
+            </div>
             <span style={{ fontSize: 9 * scale, color: muted }}>
               {next
                 ? `${next.name}까지 ${fmt(next.rating - data.rating)}`
