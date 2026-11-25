@@ -1,8 +1,8 @@
 # ps-cards
 
-Animated SVG cards of a [solved.ac](https://solved.ac) profile, for GitHub READMEs and anywhere else that shows images.
+Animated SVG cards of your [solved.ac](https://solved.ac) and [LeetCode](https://leetcode.com) profiles, for GitHub READMEs and anywhere else that shows images.
 
-Pick a card below, copy its snippet, and replace `HANDLE` with a solved.ac handle. Every card takes `color=light` or `color=dark` (default) and a `size`; see [Options](#options).
+Pick a card below, copy its snippet, and replace `HANDLE` with your solved.ac or LeetCode handle. Every card takes `color=light` or `color=dark` (default) and a `size`; see [Options](#options).
 
 - [Profile](#profile): tier crest, rating and progress
 - [Tags](#tags): rating per algorithm tag
@@ -10,6 +10,7 @@ Pick a card below, copy its snippet, and replace `HANDLE` with a solved.ac handl
 - [Streak](#streak): a year of daily activity
 - [Rating](#rating): rating over the past year
 - [Summary](#summary): how your rating is made up
+- [LeetCode](#leetcode): solved problems by difficulty, ranking and contest rating
 
 ---
 
@@ -124,6 +125,23 @@ The "다음 점수까지" count appears only while the bonus formula matches the
 
 704×200px by default; `size` sets the height from 200 to 1000.
 
+## LeetCode
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/leetcode/seheon99?color=light">
+  <img alt="LeetCode card" src="https://ps-cards.seheon.kr/leetcode/seheon99">
+</picture>
+
+Your LeetCode solved count split by difficulty, against LeetCode's totals, with your global ranking, contest rating and share of all problems solved. Takes a LeetCode username (letters, digits, `_` and `-`).
+
+- The ring draws Easy, Medium and Hard in turn, then the bars grow.
+
+```md
+![LeetCode](https://ps-cards.seheon.kr/leetcode/HANDLE)
+```
+
+560×200px by default; `size` sets the height from 200 to 1000.
+
 ---
 
 ## Options
@@ -146,7 +164,7 @@ To follow the reader's GitHub theme, wrap a card in `<picture>` as the previews 
 
 Animations are skipped for readers who ask their system for reduced motion.
 
-Handles must match `[A-Za-z0-9_]{1,64}`. Other handles get `400`; unknown handles get `404`.
+solved.ac handles must match `[A-Za-z0-9_]{1,64}` (LeetCode also allows `-`). Other handles get `400`; unknown handles get `404`.
 
 ## Credits
 

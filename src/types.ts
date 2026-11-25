@@ -97,3 +97,13 @@ export type Activity = {
 }
 
 export type RatingPoint = { day: string; value: number }
+
+export type LeetCodeDifficulty = 'Easy' | 'Medium' | 'Hard'
+
+export type LeetCodeStats = {
+  username: string
+  ranking: number | null
+  solved: Record<LeetCodeDifficulty | 'All', number>
+  total: Record<LeetCodeDifficulty | 'All', number>
+  contest: { rating: number; attended: number; topPercentage: number } | null
+}

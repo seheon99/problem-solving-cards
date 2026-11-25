@@ -1,5 +1,6 @@
 import type {
   Activity,
+  LeetCodeStats,
   ProblemStat,
   RatingPoint,
   TagRatingStat,
@@ -14,6 +15,10 @@ if (!SOLVEDAC_CLIENT_ID || !SOLVEDAC_CLIENT_SECRET)
   throw new Error('SOLVEDAC_CLIENT_ID and SOLVEDAC_CLIENT_SECRET must be set')
 
 // solved.ac handles are alphanumerics and underscores; anything else never reaches the API
+// LeetCode usernames also allow hyphens
+export const isValidLeetCodeHandle = (handle: string) =>
+  /^[A-Za-z0-9_-]{1,64}$/.test(handle)
+
 export const isValidHandle = (handle: string) =>
   /^[A-Za-z0-9_]{1,64}$/.test(handle)
 
@@ -156,4 +161,73 @@ export default class RequestManager {
     )
     return res?.history ?? null
   }
+
+  // LeetCode's public GraphQL API; null when the user doesn't exist.
+  async getLeetCode(handle: string): Promise<LeetCodeStats | null> {
+    const key = `leetcode:${handle}`
+    const hit = this.cache.get(key)
+    if (hit && Date.now() - hit.at < 10 * 60 * 1000)
+      return hit.data as LeetCodeStats | null
+
+    this.logger.info(`POST leetcode ${handle}`)
+    const query = `query($u: String!) {
+      matchedUser(username: $u) {
+        username
+        profile { ranking }
+        submitStatsGlobal { acSubmissionNum { difficulty count } }
+      }
+      userContestRanking(username: $u) { rating attendedContestsCount topPercentage }
+      allQuestionsCount { difficulty count }
+    }`
+    type Count = { difficulty: LeetCodeDifficultyKey; count: number }
+    const { data } = await axios.post<{
+      data?: {
+        matchedUser: {
+          username: string
+          profile: { ranking: number | null }
+          submitStatsGlobal: { acSubmissionNum: Count[] }
+        } | null
+        userContestRanking: {
+          rating: number
+          attendedContestsCount: number
+          topPercentage: number
+        } | null
+        allQuestionsCount: Count[]
+      }
+    }>(
+      'https://leetcode.com/graphql',
+      { query, variables: { u: handle } },
+      { headers: { Referer: 'https://leetcode.com' }, timeout: 10000 },
+    )
+
+    const user = data.data?.matchedUser
+    const toRecord = (counts: Count[]) =>
+      Object.fromEntries(
+        ['All', 'Easy', 'Medium', 'Hard'].map((d) => [
+          d,
+          counts.find((c) => c.difficulty === d)?.count ?? 0,
+        ]),
+      ) as LeetCodeStats['solved']
+    const contest = data.data?.userContestRanking
+    const stats: LeetCodeStats | null = user
+      ? {
+          username: user.username,
+          ranking: user.profile.ranking,
+          solved: toRecord(user.submitStatsGlobal.acSubmissionNum),
+          total: toRecord(data.data?.allQuestionsCount ?? []),
+          contest: contest
+            ? {
+                rating: contest.rating,
+                attended: contest.attendedContestsCount,
+                topPercentage: contest.topPercentage,
+              }
+            : null,
+        }
+      : null
+
+    this.cache.set(key, { at: Date.now(), data: stats })
+    return stats
+  }
 }
+
+type LeetCodeDifficultyKey = 'All' | 'Easy' | 'Medium' | 'Hard'
