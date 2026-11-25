@@ -28,7 +28,7 @@ const cacheManager = new CacheManager(logger)
 const requestManager = new RequestManager(logger)
 
 app.get('/', async (_, reply) => {
-  reply.redirect('https://github.com/seheon99/solvedac-cards')
+  reply.redirect('https://github.com/seheon99/problem-solving-cards')
 })
 
 app.get('/favicon.ico', async (_, reply) => {

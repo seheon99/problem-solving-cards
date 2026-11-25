@@ -1,4 +1,4 @@
-# solvedac-cards
+# ps-cards
 
 Animated SVG cards of a [solved.ac](https://solved.ac) profile, for GitHub READMEs and anywhere else that shows images.
 
@@ -16,8 +16,8 @@ Pick a card below, copy its snippet, and replace `HANDLE` with a solved.ac handl
 ## Profile
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/profile/seheon99?color=light&size=150">
-  <img alt="Profile card" src="https://solvedac-cards.seheon.kr/profile/seheon99?size=150">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/profile/seheon99?color=light&size=150">
+  <img alt="Profile card" src="https://ps-cards.seheon.kr/profile/seheon99?size=150">
 </picture>
 
 Your tier crest, handle, rating and progress to the next tier, with tiles for solved count, class, rank and longest streak.
@@ -26,7 +26,7 @@ Your tier crest, handle, rating and progress to the next tier, with tiles for so
 - On load the crest is drawn stroke by stroke, the rating counts up, the progress bar fills and the tiles appear one by one. Afterwards the crest flips like a coin every few seconds and a shine slides across the bar.
 
 ```md
-![Profile](https://solvedac-cards.seheon.kr/profile/HANDLE)
+![Profile](https://ps-cards.seheon.kr/profile/HANDLE)
 ```
 
 360×100px by default; `size` sets the height from 100 to 500.
@@ -34,14 +34,14 @@ Your tier crest, handle, rating and progress to the next tier, with tiles for so
 ## Tags
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/tags/seheon99?color=light">
-  <img alt="Tags card" src="https://solvedac-cards.seheon.kr/tags/seheon99">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/tags/seheon99?color=light">
+  <img alt="Tags card" src="https://ps-cards.seheon.kr/tags/seheon99">
 </picture>
 
 Eight tag tiles with icons, tier badges and ratings, plus your next seven highest-rated tags. The highest-rated tag is highlighted in its tier colour.
 
 ```md
-![Tags](https://solvedac-cards.seheon.kr/tags/HANDLE)
+![Tags](https://ps-cards.seheon.kr/tags/HANDLE)
 ```
 
 | Query | Effect |
@@ -56,14 +56,14 @@ The default tiles are `math`, `impl`, `greedy`, `string`, `ds`, `graph`, `dp` an
 ## Problems
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/problems/seheon99?color=light">
-  <img alt="Problems card" src="https://solvedac-cards.seheon.kr/problems/seheon99">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/problems/seheon99?color=light">
+  <img alt="Problems card" src="https://ps-cards.seheon.kr/problems/seheon99">
 </picture>
 
 A donut of solved problems by difficulty, from hardest to easiest, with counts and percentages per tier from Bronze through Ruby. The total and percentages cover rated levels 1–30 and leave out unrated problems.
 
 ```md
-![Problems](https://solvedac-cards.seheon.kr/problems/HANDLE)
+![Problems](https://ps-cards.seheon.kr/problems/HANDLE)
 ```
 
 420×200px by default; `size` sets the height from 200 to 1000.
@@ -71,8 +71,8 @@ A donut of solved problems by difficulty, from hardest to easiest, with counts a
 ## Streak
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/streak/seheon99?color=light">
-  <img alt="Streak card" src="https://solvedac-cards.seheon.kr/streak/seheon99">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/streak/seheon99?color=light">
+  <img alt="Streak card" src="https://ps-cards.seheon.kr/streak/seheon99">
 </picture>
 
 The past year of daily activity, each day coloured by the hardest tier you solved that day, with your current and longest streak, problems solved and active days. Days follow solved.ac's day (KST); days a streak freeze covered get a blue outline.
@@ -80,7 +80,7 @@ The past year of daily activity, each day coloured by the hardest tier you solve
 - Weeks pop in one after another, and today's square pulses.
 
 ```md
-![Streak](https://solvedac-cards.seheon.kr/streak/HANDLE)
+![Streak](https://ps-cards.seheon.kr/streak/HANDLE)
 ```
 
 720×200px by default; `size` sets the height from 200 to 1000.
@@ -88,8 +88,8 @@ The past year of daily activity, each day coloured by the hardest tier you solve
 ## Rating
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/rating/seheon99?color=light">
-  <img alt="Rating card" src="https://solvedac-cards.seheon.kr/rating/seheon99">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/rating/seheon99?color=light">
+  <img alt="Rating card" src="https://ps-cards.seheon.kr/rating/seheon99">
 </picture>
 
 Your rating over the past year on tier-coloured bands, with your current rating, the year's change and your best. The line steps at each day your rating changed and takes the colour of the tier band it's in.
@@ -97,7 +97,7 @@ Your rating over the past year on tier-coloured bands, with your current rating,
 - The line draws itself, the area beneath fades in, and the latest point keeps pulsing.
 
 ```md
-![Rating](https://solvedac-cards.seheon.kr/rating/HANDLE)
+![Rating](https://ps-cards.seheon.kr/rating/HANDLE)
 ```
 
 560×200px by default; `size` sets the height from 200 to 1000.
@@ -105,8 +105,8 @@ Your rating over the past year on tier-coloured bands, with your current rating,
 ## Summary
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/summary/seheon99?color=light">
-  <img alt="Summary card" src="https://solvedac-cards.seheon.kr/summary/seheon99">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/summary/seheon99?color=light">
+  <img alt="Summary card" src="https://ps-cards.seheon.kr/summary/seheon99">
 </picture>
 
 How your rating is made up, and what moves it next:
@@ -119,7 +119,7 @@ How your rating is made up, and what moves it next:
 The "다음 점수까지" count appears only while the bonus formula matches the value solved.ac reports.
 
 ```md
-![Summary](https://solvedac-cards.seheon.kr/summary/HANDLE)
+![Summary](https://ps-cards.seheon.kr/summary/HANDLE)
 ```
 
 704×200px by default; `size` sets the height from 200 to 1000.
@@ -139,8 +139,8 @@ To follow the reader's GitHub theme, wrap a card in `<picture>` as the previews 
 
 ```html
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/profile/HANDLE?color=light">
-  <img alt="solved.ac profile" src="https://solvedac-cards.seheon.kr/profile/HANDLE">
+  <source media="(prefers-color-scheme: light)" srcset="https://ps-cards.seheon.kr/profile/HANDLE?color=light">
+  <img alt="solved.ac profile" src="https://ps-cards.seheon.kr/profile/HANDLE">
 </picture>
 ```
 
