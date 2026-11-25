@@ -1,4 +1,10 @@
-import type { ProblemStat, TagRatingStat, User } from '../types'
+import type {
+  Activity,
+  ProblemStat,
+  RatingPoint,
+  TagRatingStat,
+  User,
+} from '../types'
 import axios from 'axios'
 import type { AxiosError, AxiosInstance } from 'axios'
 import type { FastifyBaseLogger } from 'fastify'
@@ -8,7 +14,8 @@ if (!SOLVEDAC_CLIENT_ID || !SOLVEDAC_CLIENT_SECRET)
   throw new Error('SOLVEDAC_CLIENT_ID and SOLVEDAC_CLIENT_SECRET must be set')
 
 // solved.ac handles are alphanumerics and underscores; anything else never reaches the API
-export const isValidHandle = (handle: string) => /^[A-Za-z0-9_]{1,64}$/.test(handle)
+export const isValidHandle = (handle: string) =>
+  /^[A-Za-z0-9_]{1,64}$/.test(handle)
 
 type V4User = Omit<User, 'classDecoration'> & {
   classPlus: boolean
@@ -43,7 +50,9 @@ export default class RequestManager {
   private cache = new Map<string, { at: number; data: unknown }>()
 
   private async get<T>(path: string, params?: Record<string, string | number>) {
-    const key = `${path}?${new URLSearchParams(params as Record<string, string>)}`
+    const key = `${path}?${new URLSearchParams(
+      params as Record<string, string>,
+    )}`
     const hit = this.cache.get(key)
     if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.data as T | null
 
@@ -103,7 +112,10 @@ export default class RequestManager {
   async getProblemStats(handle: string): Promise<ProblemStat[] | null> {
     const totals = await Promise.all(
       Array.from({ length: 31 }, (_, level) =>
-        this.get<V4ProblemPage>('/problems', { q: `s@${handle} *${level}`, page: 1 }),
+        this.get<V4ProblemPage>('/problems', {
+          q: `s@${handle} *${level}`,
+          page: 1,
+        }),
       ),
     )
     if (totals.some((t) => !t)) return null
@@ -124,6 +136,24 @@ export default class RequestManager {
     const user = await this.getV4User(handle)
     if (!user) return null
 
-    return user.tagRatings.map(({ key, ...rest }) => ({ ...rest, tag: { key } }))
+    return user.tagRatings.map(({ key, ...rest }) => ({
+      ...rest,
+      tag: { key },
+    }))
+  }
+
+  async getActivity(handle: string, from: string, to: string) {
+    return this.get<Activity>(
+      `/users/${encodeURIComponent(handle)}/activity/days`,
+      { from, to },
+    )
+  }
+
+  async getRatingHistory(handle: string): Promise<RatingPoint[] | null> {
+    const res = await this.get<{ history: RatingPoint[] }>(
+      `/users/${encodeURIComponent(handle)}/rating/history`,
+      { range: '1y' },
+    )
+    return res?.history ?? null
   }
 }

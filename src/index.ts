@@ -1,5 +1,7 @@
 import { problemCard } from './cards/problems'
 import { profileCard } from './cards/profile'
+import { ratingCard } from './cards/rating'
+import { kstToday, streakCard, streakRange } from './cards/streak'
 import { tagCard } from './cards/tags'
 import CacheManager from './structures/Cache'
 import RequestManager, { isValidHandle } from './structures/Request'
@@ -153,6 +155,73 @@ app.get('/tags/:handle', async (request, reply) => {
           text: !!text,
         },
         tagCard,
+      ),
+    )
+})
+
+const parseCommon = (
+  query: { size?: string; color?: string },
+  min: number,
+  max: number,
+  fallback: number,
+) => {
+  const { size, color } = query
+  if (color && color !== 'dark' && color !== 'light')
+    return 'Invalid Color, Must be dark or light'
+  const _size = parseInt(size ?? String(fallback))
+  if (!(_size >= min && _size <= max))
+    return `Invalid Size, Must be between ${min} and ${max}`
+  return { size: _size, isDark: color !== 'light' }
+}
+
+app.get('/streak/:handle', async (request, reply) => {
+  const { handle } = request.params as { handle?: string }
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
+  const opts = parseCommon(request.query as object, 200, 1000, 200)
+  if (typeof opts === 'string') return reply.code(400).send(opts)
+
+  const today = kstToday()
+  const { from, to } = streakRange(today)
+  const [user, activity] = await Promise.all([
+    requestManager.getUser(handle),
+    requestManager.getActivity(handle, from, to),
+  ])
+  if (!user || !activity) return reply.code(404).send('User Not Found')
+
+  reply
+    .code(200)
+    .type('image/svg+xml')
+    .header('Cache-Control', 'public, max-age=0, must-revalidate')
+    .send(
+      await cacheManager.generateCachedCard(
+        { user, activity, today, ...opts },
+        streakCard,
+      ),
+    )
+})
+
+app.get('/rating/:handle', async (request, reply) => {
+  const { handle } = request.params as { handle?: string }
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
+  const opts = parseCommon(request.query as object, 200, 1000, 200)
+  if (typeof opts === 'string') return reply.code(400).send(opts)
+
+  const [user, history] = await Promise.all([
+    requestManager.getUser(handle),
+    requestManager.getRatingHistory(handle),
+  ])
+  if (!user || !history) return reply.code(404).send('User Not Found')
+
+  reply
+    .code(200)
+    .type('image/svg+xml')
+    .header('Cache-Control', 'public, max-age=0, must-revalidate')
+    .send(
+      await cacheManager.generateCachedCard(
+        { user, history, today: kstToday(), ...opts },
+        ratingCard,
       ),
     )
 })

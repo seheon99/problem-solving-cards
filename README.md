@@ -6,6 +6,8 @@ SVG cards of a [solved.ac](https://solved.ac) profile, for GitHub READMEs and an
 
 ![Tags](https://solvedac-cards.seheon.kr/tags/seheon99?text=true) ![Problems](https://solvedac-cards.seheon.kr/problems/seheon99)
 
+![Streak](https://solvedac-cards.seheon.kr/streak/seheon99) ![Rating](https://solvedac-cards.seheon.kr/rating/seheon99)
+
 ## Usage
 
 Put an image link in Markdown, replacing `HANDLE` with a solved.ac handle:
@@ -14,6 +16,8 @@ Put an image link in Markdown, replacing `HANDLE` with a solved.ac handle:
 ![Profile](https://solvedac-cards.seheon.kr/profile/HANDLE)
 ![Tags](https://solvedac-cards.seheon.kr/tags/HANDLE?text=true)
 ![Problems](https://solvedac-cards.seheon.kr/problems/HANDLE)
+![Streak](https://solvedac-cards.seheon.kr/streak/HANDLE)
+![Rating](https://solvedac-cards.seheon.kr/rating/HANDLE)
 ```
 
 ### Cards
@@ -23,6 +27,8 @@ Put an image link in Markdown, replacing `HANDLE` with a solved.ac handle:
 | `/profile/:handle` | Tier, rating, class, solved count and progress to the next tier | 100px | 100–500px |
 | `/tags/:handle` | Tag tiles with icons, tiers and ratings, plus your next 7 highest-rated tags | 200px | 200–1000px |
 | `/problems/:handle` | Difficulty donut with tier counts and percentages | 200px | 200–1000px |
+| `/streak/:handle` | Past year of daily activity, each day coloured by the hardest tier solved, with current and longest streak | 200px | 200–1000px |
+| `/rating/:handle` | Rating over the past year on tier-coloured bands, with current, change and best | 200px | 200–1000px |
 
 ### Options
 
@@ -38,6 +44,8 @@ Put an image link in Markdown, replacing `HANDLE` with a solved.ac handle:
 The default tiles are `math`, `impl`, `greedy`, `string`, `ds`, `graph`, `dp` and `geom`. The highest-rated tag is highlighted in its tier color. Missing default tags show a zero rating. At the default height the card is 704px wide; both dimensions scale with `size`.
 
 The problems card is 420px wide at its default height. Its center total and tier percentages include rated difficulties (levels 1–30), excluding unrated problems. Slices run from hardest to easiest; the breakdown lists active tiers from Bronze through Ruby. Both dimensions scale with `size`.
+
+The streak card is 720px wide at its default height. Days follow solved.ac's day (KST); days a streak freeze covered get a blue outline. The rating card is 560px wide; its line steps at each day the rating changed and takes the colour of the tier band it is in. Both dimensions scale with `size`.
 
 Handles must match `[A-Za-z0-9_]{1,64}`. Other handles get `400`; unknown handles get `404`.
 
