@@ -63,7 +63,7 @@ export const leetcodeCard = async (params: {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: 560 * scale,
+        width: 720 * scale,
         height: size,
         padding: 15 * scale,
         gap: 10 * scale,
@@ -87,7 +87,7 @@ export const leetcodeCard = async (params: {
           style={{
             color: muted,
             fontSize: 11 * scale,
-            width: 400 * scale,
+            width: 560 * scale,
             justifyContent: 'flex-end',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
@@ -121,7 +121,7 @@ export const leetcodeCard = async (params: {
             flexDirection: 'column',
             justifyContent: 'center',
             gap: 10 * scale,
-            width: 210 * scale,
+            width: 300 * scale,
           }}
         >
           {DIFFS.map((d, i) => {
