@@ -1,6 +1,7 @@
 import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
+import { BADGE_CSS, badgeSvg } from './tierBadge'
 
 // ponytail: satori can't emit animation, so CSS/SVG is spliced into its output.
 // satori copies `opacity` onto every node it draws for an element (multiplying
@@ -66,6 +67,7 @@ ${TAG.tiles
 #ring{animation:draw 1.2s .3s cubic-bezier(.2,.8,.2,1) both${
     o.glow ? ';filter:url(#glow)' : ''
   }}
+${BADGE_CSS}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;filter:none!important}}
 </style><defs>
 <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="${
@@ -350,5 +352,10 @@ export const profileCard = async (params: {
   })
   return svg
     .replace(/^<svg[^>]*>/, (open) => open + css)
-    .replace(/<\/svg>$/, ringRect(scale, ring) + '</svg>')
+    .replace(
+      /<\/svg>$/,
+      ringRect(scale, ring) +
+        badgeSvg(data.tier, 68 * scale, 62 * scale, 24 * scale) +
+        '</svg>',
+    )
 }

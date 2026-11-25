@@ -51,7 +51,10 @@ test('every animation hook lands on a rendered element', async () => {
   assert.ok(tags.length >= 12 + 8)
   for (const t of tags)
     assert.match(svg, new RegExp(`<(path|g|rect|image)[^>]* opacity="${t}"`), t)
-  assert.match(svg, /<rect id="ring"[^>]*\/><\/svg>$/)
+  assert.match(svg, /<rect id="ring"[^>]*\/>/)
+  for (const id of ['badge', 'badge-pop', 'badge-shield', 'badge-glyph'])
+    assert.ok(svg.includes(`id="${id}"`), id)
+  assert.match(svg, /<\/g><\/svg>$/)
   assert.ok(svg.includes('filter:url(#glow)'), 'diamond glows')
   assert.ok(!svg.includes('filter:url(#hue)'), 'only master shifts hue')
   const master = await profileCard({
@@ -102,4 +105,18 @@ test('rating counts up through tagged frames', async () => {
     isDark: true,
   })
   assert.doesNotMatch(unrated, /<path[^>]*opacity="0.001"/)
+})
+
+test('tier badge shows the level within each tier group', () => {
+  const { badgeParts } = require('../src/cards/tierBadge')
+  const glyph = (t) => badgeParts(t).glyph
+  assert.equal(glyph(1), glyph(6)) // Bronze V, Silver V
+  assert.equal(glyph(5), glyph(30)) // Bronze I, Ruby I
+  assert.notEqual(glyph(1), glyph(5))
+  assert.notEqual(glyph(0), glyph(31))
+  for (let t = 0; t <= 31; t++) {
+    assert.ok(glyph(t), `glyph for ${t}`)
+    assert.ok(badgeParts(t).colors, `colors for ${t}`)
+  }
+  assert.notDeepEqual(badgeParts(1).colors, badgeParts(6).colors)
 })
