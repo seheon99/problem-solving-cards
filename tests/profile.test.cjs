@@ -129,3 +129,10 @@ test('laurel grows from level V to level I, Master largest, unrated none', () =>
   assert.equal(laurel(0), 0)
   assert.ok(laurel(31) > laurel(30))
 })
+
+test('looping spin never collapses the badge at its loop boundary', () => {
+  const { BADGE_CSS } = require('../src/cards/tierBadge')
+  const spin = BADGE_CSS.match(/@keyframes badge-spin\{(.*?)\}\}/)[1]
+  assert.match(spin, /^0%[^{]*\{transform:scaleX\(1\)/)
+  assert.match(spin, /100%\{transform:scaleX\(1\)/)
+})

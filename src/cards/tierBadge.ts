@@ -94,7 +94,7 @@ export const badgeSvg = (tier: number, x: number, y: number, w: number) => {
     x + 10 * k
   } ${
     y + k
-  }) scale(${k})"><g id="badge-spin">${laurels}<g id="badge-pop"><path id="badge-shield" d="${SHIELD}" fill="url(#badge-fill)" stroke="url(#badge-fill)" stroke-width="2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/><path id="badge-bevel" d="${BEVEL}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1" pathLength="1" stroke-dasharray="1"/><path id="badge-star" d="${STAR}" fill="#fff"/><path id="badge-glyph" transform="${GLYPH_FIT}" d="${glyph}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/><path id="badge-chevron" d="${CHEVRON}" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/></g></g></g></g>`
+  }) scale(${k})"><g id="badge-intro"><g id="badge-spin">${laurels}<g id="badge-pop"><path id="badge-shield" d="${SHIELD}" fill="url(#badge-fill)" stroke="url(#badge-fill)" stroke-width="2" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/><path id="badge-bevel" d="${BEVEL}" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="1" pathLength="1" stroke-dasharray="1"/><path id="badge-star" d="${STAR}" fill="#fff"/><path id="badge-glyph" transform="${GLYPH_FIT}" d="${glyph}" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/><path id="badge-chevron" d="${CHEVRON}" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1"/></g></g></g></g></g>`
 }
 
 // Intro: patch outline traces → colour floods → laurel grows leaf by leaf →
@@ -104,7 +104,9 @@ export const BADGE_CSS = `@keyframes badge-draw{from{stroke-dashoffset:1}}
 @keyframes badge-leaf{from{transform:scale(0)}}
 @keyframes badge-star{0%{transform:scale(0) rotate(-180deg)}70%{transform:scale(1.3) rotate(15deg)}}
 @keyframes badge-pop{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-6deg)}70%{transform:scale(.94) rotate(3deg)}}
-@keyframes badge-spin{0%{transform:scaleX(0)}12%{transform:scaleX(1)}70%{transform:scaleX(1)}77%{transform:scaleX(0)}84%{transform:scaleX(-1)}91%{transform:scaleX(0)}98%,100%{transform:scaleX(1)}}
+@keyframes badge-intro{from{transform:scaleX(0)}}
+@keyframes badge-spin{0%,70%{transform:scaleX(1)}77%{transform:scaleX(0)}84%{transform:scaleX(-1)}91%{transform:scaleX(0)}98%,100%{transform:scaleX(1)}}
+#badge-intro{transform-box:fill-box;transform-origin:center;animation:badge-intro .7s ease-out both}
 #badge-spin{transform-box:fill-box;transform-origin:center;animation:badge-spin 6s ease-in-out infinite}
 #badge-shield{animation:badge-draw .8s .2s ease-in-out both,badge-fill .4s .9s ease-out both}
 #badge-laurel .stem{animation:badge-draw .7s .6s ease-out both}
