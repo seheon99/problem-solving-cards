@@ -2,6 +2,7 @@ import { generate } from '.'
 import { themeMapping, tierMapping } from '../constants'
 import type { TagRatingStat, User } from '../types'
 import { tagIcons } from './tagIcons'
+import { BEVEL, SHIELD, badgeParts } from './tierBadge'
 
 const TAGS = ['math', 'impl', 'greedy', 'string', 'ds', 'graph', 'dp', 'geom']
 const tiers = [...tierMapping.entries()].reverse()
@@ -31,25 +32,43 @@ export const tagCard = async (params: {
 
   const badge = (rating: number) => {
     const [level, tier] = ratingTier(rating)
+    const { glyph, colors } = badgeParts(level)
     return (
       <svg
-        width={12 * scale}
+        width={13 * scale}
         height={16 * scale}
-        viewBox="0 0 12 16"
+        viewBox="0 0 40 48"
         aria-label={tier.name}
       >
-        <path d="M1 1h10v10l-5 4-5-4z" fill={level === 0 ? sub : tier.color} />
-        {level > 0 && (
-          <path
-            d={Array.from(
-              { length: level === 31 ? 1 : 5 - ((level - 1) % 5) },
-              (_, i) => `M4 ${4 + i * 1.5}h4`,
-            ).join(' ')}
-            fill="none"
-            stroke={base}
-            strokeWidth="0.8"
-          />
-        )}
+        <defs>
+          <linearGradient
+            id="g"
+            x1="0"
+            y1="48"
+            x2="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0" stopColor={colors[0]} />
+            <stop offset="1" stopColor={colors[1]} />
+          </linearGradient>
+        </defs>
+        <path d={SHIELD} fill="url(#g)" />
+        <path
+          d={BEVEL}
+          fill="none"
+          stroke="#fff"
+          strokeOpacity=".35"
+          strokeWidth="1"
+        />
+        <path
+          d={glyph}
+          fill="none"
+          stroke="#fff"
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     )
   }
