@@ -1,18 +1,10 @@
 import { generate } from '.'
 import { themeMapping, tierMapping } from '../constants'
 import type { TagRatingStat, User } from '../types'
-import * as d3 from 'd3'
+import { tagIcons } from './tagIcons'
 
-const TAGS = [
-  'math',
-  'impl',
-  'greedy',
-  'string',
-  'ds',
-  'graph',
-  'dp',
-  'geom',
-]
+const TAGS = ['math', 'impl', 'greedy', 'string', 'ds', 'graph', 'dp', 'geom']
+const tiers = [...tierMapping.entries()].reverse()
 
 export const tagCard = async (params: {
   user: User
@@ -22,130 +14,215 @@ export const tagCard = async (params: {
   top: boolean
   text: boolean
 }) => {
-  const { user, stats, size, isDark, top, text: textNotation } = params
-  const sizeConv = size / 200
-  const { base, mantle, text } = themeMapping.get(isDark)!
+  const { user, stats, size, isDark, top } = params
+  const scale = size / 200
+  const { base, mantle, text, sub } = themeMapping.get(isDark)!
+  const muted = isDark ? sub : '#526170'
+  const sorted = [...stats].sort((a, b) => b.rating - a.rating)
+  const primary = top ? sorted.slice(0, 8).map(({ tag }) => tag.key) : TAGS
+  const secondary = sorted
+    .filter(({ tag }) => !primary.includes(tag.key))
+    .slice(0, 7)
+  const best = sorted[0]?.rating ?? 0
+  const border = isDark ? '#263747' : '#e4e9ee'
 
-  const _stats = top
-    ? stats.sort((a, b) => b.rating - a.rating).slice(0, 8)
-    : stats
-        .filter((d) => TAGS.includes(d.tag.key))
-        .sort((a, b) => TAGS.indexOf(a.tag.key) - TAGS.indexOf(b.tag.key))
+  const ratingTier = (rating: number) =>
+    tiers.find(([, tier]) => rating >= tier.rating) ?? tiers[tiers.length - 1]
 
-  const tags = top ? _stats.map((d) => d.tag.key) : TAGS
-  const max = Math.max(..._stats.map((d) => d.rating))
-
-  const area = d3
-    .areaRadial<TagRatingStat>()
-    .curve(d3.curveLinearClosed)
-    .angle((d) => tags.indexOf(d.tag.key) * ((2 * Math.PI) / tags.length))
-    .radius((d) => d.rating * (70 / max) * sizeConv)
-
-  const areaArcs = area(_stats)
-
-  const toPoint = (name: string, radius: number) => {
-    const coord = d3.pointRadial(
-      tags.indexOf(name) * ((2 * Math.PI) / tags.length),
-      radius,
+  const badge = (rating: number) => {
+    const [level, tier] = ratingTier(rating)
+    return (
+      <svg
+        width={12 * scale}
+        height={16 * scale}
+        viewBox="0 0 12 16"
+        aria-label={tier.name}
+      >
+        <path d="M1 1h10v10l-5 4-5-4z" fill={level === 0 ? sub : tier.color} />
+        {level > 0 && (
+          <path
+            d={Array.from(
+              { length: level === 31 ? 1 : 5 - ((level - 1) % 5) },
+              (_, i) => `M4 ${4 + i * 1.5}h4`,
+            ).join(' ')}
+            fill="none"
+            stroke={base}
+            strokeWidth="0.8"
+          />
+        )}
+      </svg>
     )
-
-    return {
-      name,
-      x: coord[0],
-      y: coord[1],
-    }
   }
-
-  const points = _stats.map((d) =>
-    toPoint(d.tag.key, d.rating * (70 / max) * sizeConv),
-  )
-  const textPoints = textNotation
-    ? points.map((d) => toPoint(d.name, 80 * sizeConv))
-    : []
 
   return await generate(
     <div
       style={{
         display: 'flex',
-        alignItems: 'center',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        width: 704 * scale,
+        height: size,
+        padding: 15 * scale,
         backgroundColor: base,
-        borderRadius: 20 * sizeConv,
-        fontSize: 28 * sizeConv,
+        border: `${scale}px solid ${border}`,
+        borderRadius: 16 * scale,
+        color: text,
+        fontSize: 12 * scale,
       }}
     >
       <div
         style={{
           display: 'flex',
-          width: 170 * sizeConv,
-          height: 170 * sizeConv,
-          margin: 15 * sizeConv,
-          backgroundColor: mantle,
-          borderRadius: 20 * sizeConv,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          height: 18 * scale,
         }}
       >
-        <svg
+        <span style={{ fontSize: 17 * scale, flexShrink: 0 }}>태그</span>
+        <span
           style={{
-            width: 170 * sizeConv,
-            height: 170 * sizeConv,
+            color: muted,
+            fontSize: 11 * scale,
+            width: 560 * scale,
+            justifyContent: 'flex-end',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
           }}
         >
-          <g transform={`translate(${85 * sizeConv},${85 * sizeConv})`}>
-            <path
-              d={areaArcs!}
-              stroke={tierMapping.get(user.tier)!.detailedColor}
-              strokeWidth={2 * sizeConv}
-              fill={tierMapping.get(user.tier)!.detailedColor}
-              fillOpacity={0.5}
-            />
-            {points.map((point, i) => (
-              <g key={i}>
-                <circle
-                  r={3 * sizeConv}
-                  cx={point.x}
-                  cy={point.y}
-                  fill={tierMapping.get(user.tier)!.detailedColor}
-                />
-              </g>
-            ))}
-            {textPoints.map((point, i) => (
-              <div
-                key={i}
+          {user.handle}
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 8 * scale }}>
+        {primary.map((key) => {
+          const rating = stats.find(({ tag }) => tag.key === key)?.rating ?? 0
+          const [level, tier] = ratingTier(rating)
+          const isBest = rating > 0 && rating === best
+          const accent = isBest && level > 0 ? tier.color : muted
+
+          return (
+            <div
+              key={key}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 5 * scale,
+                width: 77 * scale,
+                height: 78 * scale,
+                flexShrink: 0,
+                borderRadius: 10 * scale,
+                border: `${scale}px solid ${isBest ? accent : border}`,
+                backgroundColor: isBest ? `${accent}18` : mantle,
+              }}
+            >
+              <svg
+                width={19 * scale}
+                height={19 * scale}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke={accent}
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {(
+                  tagIcons[key] ?? ['M7 7l-5 5 5 5M17 7l5 5-5 5M14 4l-4 16']
+                ).map((d) => (
+                  <path key={d} d={d} />
+                ))}
+              </svg>
+              <span
                 style={{
-                  position: 'absolute',
-                  left: point.x + 85 * sizeConv,
-                  top: point.y + 85 * sizeConv,
-                  color: text,
-                  fontSize: 10 * sizeConv,
-                  transform: 'translate(-50%, -50%)',
+                  width: 69 * scale,
+                  justifyContent: 'center',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  fontSize: 11 * scale,
                 }}
               >
-                {point.name}
+                {key}
+              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5 * scale,
+                }}
+              >
+                {badge(rating)}
+                <span
+                  style={{
+                    fontSize: 15 * scale,
+                    color: text,
+                  }}
+                >
+                  {rating.toLocaleString('en-US')}
+                </span>
               </div>
-            ))}
-          </g>
-          <circle
-            r={20 * sizeConv}
-            cx={85 * sizeConv}
-            cy={85 * sizeConv}
-            stroke={tierMapping.get(user.tier)!.detailedColor}
-            strokeWidth={4 * sizeConv}
-          />
-          <clipPath id="clip">
-            <circle r={20 * sizeConv} cx={85 * sizeConv} cy={85 * sizeConv} />
-          </clipPath>
-          <image
-            href={
-              (user.profileImageUrl ||
-                'https://static.solved.ac/misc/360x360/default_profile.png') +
-              `?timestamp=${Date.now()}` // prevent image caching in satori. issue: https://github.com/vercel/satori/issues/592
-            }
-            clipPath="url(#clip)"
-            height={40 * sizeConv}
-            width={40 * sizeConv}
-            x={65 * sizeConv}
-            y={65 * sizeConv}
-          />
-        </svg>
+            </div>
+          )
+        })}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignContent: 'flex-start',
+          gap: 6 * scale,
+          height: 48 * scale,
+        }}
+      >
+        {secondary.map(({ tag, rating }) => (
+          <div
+            key={tag.key}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: 162 * scale,
+              height: 21 * scale,
+              padding: `0 ${7 * scale}px`,
+              borderRadius: 5 * scale,
+              backgroundColor: mantle,
+              border: `${scale}px solid ${
+                rating > 0 && rating === best
+                  ? ratingTier(rating)[1].color
+                  : 'transparent'
+              }`,
+              color: muted,
+              fontSize: 10 * scale,
+            }}
+          >
+            <span
+              style={{
+                width: 100 * scale,
+                flexShrink: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {tag.key}
+            </span>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+                marginLeft: 6 * scale,
+                gap: 4 * scale,
+              }}
+            >
+              {badge(rating)}
+              <span style={{ color: text }}>
+                {rating.toLocaleString('en-US')}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
     </div>,
     size,
