@@ -51,7 +51,11 @@ test('every animation hook lands on a rendered element', async () => {
   assert.ok(tags.length >= 12 + 8)
   for (const t of tags)
     assert.match(svg, new RegExp(`<(path|g|rect|image)[^>]* opacity="${t}"`), t)
-  assert.match(svg, /<rect id="ring"[^>]*\/>/)
+  assert.ok(!svg.includes('id="ring"'), 'no avatar ring')
+  assert.ok(
+    svg.includes('#badge-shield{filter:url(#glow)}'),
+    'diamond crest glows',
+  )
   for (const id of ['badge', 'badge-pop', 'badge-shield', 'badge-glyph'])
     assert.ok(svg.includes(`id="${id}"`), id)
   assert.match(svg, /<\/g><\/svg>$/)
@@ -65,24 +69,20 @@ test('every animation hook lands on a rendered element', async () => {
   assert.ok(master.includes('filter:url(#hue)'))
 })
 
-test('shows the profile image, or the handle initial without one', async (t) => {
-  const img = 'data:image/png;base64,iVBORw0KGgo='
-  const renderer = require('../src/cards')
-  t.mock.method(renderer, 'generate', async (el) => JSON.stringify(el))
-  assert.ok(
-    (
-      await profileCard({
-        data: { ...user, profileImageUrl: img },
-        size: 100,
-        isDark: true,
-      })
-    ).includes(img),
-  )
-  assert.ok(
-    (await profileCard({ data: user, size: 100, isDark: true })).includes(
-      '"children":"S"',
-    ),
-  )
+test('the crest fills the old avatar slot and stays inside the card', async () => {
+  for (const tier of [0, 15, 31]) {
+    const svg = await profileCard({
+      data: { ...user, tier },
+      size: 100,
+      isDark: true,
+    })
+    const [, x, y, k] = svg.match(
+      /<g id="badge"><g transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)"/,
+    )
+    // crest spans -10..50 x -1..53 in badge units around the translate point
+    assert.ok(+x - 10 * k >= 12 && +x + 50 * k <= 90, `x fits slot (${tier})`)
+    assert.ok(+y - k >= 0 && +y + 53 * k <= 100, `y fits card (${tier})`)
+  }
 })
 
 test('rating counts up through tagged frames', async () => {
