@@ -8,7 +8,8 @@ if (!SOLVEDAC_CLIENT_ID || !SOLVEDAC_CLIENT_SECRET)
   throw new Error('SOLVEDAC_CLIENT_ID and SOLVEDAC_CLIENT_SECRET must be set')
 
 // solved.ac handles are alphanumerics and underscores; anything else never reaches the API
-export const isValidHandle = (handle: string) => /^[A-Za-z0-9_]{1,64}$/.test(handle)
+export const isValidHandle = (handle: string) =>
+  /^[A-Za-z0-9_]{1,64}$/.test(handle)
 
 type V4User = Omit<User, 'classDecoration'> & {
   classPlus: boolean
@@ -43,7 +44,9 @@ export default class RequestManager {
   private cache = new Map<string, { at: number; data: unknown }>()
 
   private async get<T>(path: string, params?: Record<string, string | number>) {
-    const key = `${path}?${new URLSearchParams(params as Record<string, string>)}`
+    const key = `${path}?${new URLSearchParams(
+      params as Record<string, string>,
+    )}`
     const hit = this.cache.get(key)
     if (hit && Date.now() - hit.at < 10 * 60 * 1000) return hit.data as T | null
 
@@ -66,13 +69,30 @@ export default class RequestManager {
     return this.get<V4User>(`/users/${encodeURIComponent(handle)}`)
   }
 
+  // v4 users carry no rank; the rankings search does. A failed lookup just leaves rank unset.
+  private async getRank(handle: string) {
+    const res = await this.get<{
+      exact: { handle: string; rank: number } | null
+    }>('/rankings/users/search', { q: handle, sort: 'rating' }).catch(
+      () => null,
+    )
+    const exact = res?.exact
+    return exact && exact.handle.toLowerCase() === handle.toLowerCase()
+      ? exact.rank
+      : undefined
+  }
+
   async getUser(handle: string): Promise<User | null> {
-    const user = await this.getV4User(handle)
+    const [user, rank] = await Promise.all([
+      this.getV4User(handle),
+      this.getRank(handle),
+    ])
     if (!user) return null
 
     // ponytail: v4 only says whether class has a plus, so "+" maps to silver
     return {
       ...user,
+      rank,
       classDecoration: user.classPlus ? 'silver' : 'none',
       profileImageUrl: await this.fetchImage(user.profileImageUrl),
     }
@@ -103,7 +123,10 @@ export default class RequestManager {
   async getProblemStats(handle: string): Promise<ProblemStat[] | null> {
     const totals = await Promise.all(
       Array.from({ length: 31 }, (_, level) =>
-        this.get<V4ProblemPage>('/problems', { q: `s@${handle} *${level}`, page: 1 }),
+        this.get<V4ProblemPage>('/problems', {
+          q: `s@${handle} *${level}`,
+          page: 1,
+        }),
       ),
     )
     if (totals.some((t) => !t)) return null
@@ -124,6 +147,9 @@ export default class RequestManager {
     const user = await this.getV4User(handle)
     if (!user) return null
 
-    return user.tagRatings.map(({ key, ...rest }) => ({ ...rest, tag: { key } }))
+    return user.tagRatings.map(({ key, ...rest }) => ({
+      ...rest,
+      tag: { key },
+    }))
   }
 }
