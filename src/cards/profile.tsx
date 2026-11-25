@@ -83,8 +83,8 @@ export const profileCard = async (params: {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          flexGrow: 1,
-          minWidth: 0,
+          // ponytail: fixed width; satori's flexGrow let Master content overflow the card
+          width: 246 * scale,
           height: 76 * scale,
         }}
       >

@@ -32,3 +32,13 @@ test('renders self-contained SVGs across tiers, themes and size limits', async (
     }
   }
 })
+
+test('content stays inside the card for every tier', async () => {
+  for (const data of [user, { ...user, tier: 31, rating: 3150 }]) {
+    const svg = await profileCard({ data, size: 200, isDark: false })
+    const widths = [
+      ...svg.matchAll(/<rect x="(\d+)" y="\d+" width="(\d+)"/g),
+    ].map(([, x, w]) => +x + +w)
+    assert.ok(Math.max(...widths) <= 720, `overflow ${Math.max(...widths)}`)
+  }
+})
