@@ -42,7 +42,7 @@ app.get('/favicon.ico', async (_, reply) => {
     .send(await readFile(join(__dirname, '../assets/favicon.ico')))
 })
 
-app.get('/profile/:handle', async (request, reply) => {
+app.get('/solvedac/profile/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   const { size, color } = request.query as {
     size?: string
@@ -80,7 +80,7 @@ app.get('/profile/:handle', async (request, reply) => {
     )
 })
 
-app.get('/problems/:handle', async (request, reply) => {
+app.get('/solvedac/problems/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   const { size, color } = request.query as {
     size?: string
@@ -120,7 +120,7 @@ app.get('/problems/:handle', async (request, reply) => {
     )
 })
 
-app.get('/tags/:handle', async (request, reply) => {
+app.get('/solvedac/tags/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   const { size, color, top, text } = request.query as {
     size?: string
@@ -179,7 +179,7 @@ const parseCommon = (
   return { size: _size, isDark: color !== 'light' }
 }
 
-app.get('/streak/:handle', async (request, reply) => {
+app.get('/solvedac/streak/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   if (!handle || !isValidHandle(handle))
     return reply.code(400).send('Invalid User ID')
@@ -206,7 +206,7 @@ app.get('/streak/:handle', async (request, reply) => {
     )
 })
 
-app.get('/rating/:handle', async (request, reply) => {
+app.get('/solvedac/rating/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   if (!handle || !isValidHandle(handle))
     return reply.code(400).send('Invalid User ID')
@@ -231,7 +231,7 @@ app.get('/rating/:handle', async (request, reply) => {
     )
 })
 
-app.get('/summary/:handle', async (request, reply) => {
+app.get('/solvedac/summary/:handle', async (request, reply) => {
   const { handle } = request.params as { handle?: string }
   if (!handle || !isValidHandle(handle))
     return reply.code(400).send('Invalid User ID')
