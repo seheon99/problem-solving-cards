@@ -2,7 +2,7 @@ import { generate } from '.'
 import { themeMapping, tierMapping } from '../constants'
 import type { TagRatingStat, User } from '../types'
 import { tagIcons } from './tagIcons'
-import { BEVEL, SHIELD, badgeParts } from './tierBadge'
+import { tierIcon } from './tierIcon'
 
 const TAGS = ['math', 'impl', 'greedy', 'string', 'ds', 'graph', 'dp', 'geom']
 const tiers = [...tierMapping.entries()].reverse()
@@ -32,45 +32,7 @@ export const tagCard = async (params: {
 
   const badge = (rating: number) => {
     const [level, tier] = ratingTier(rating)
-    const { glyph, colors } = badgeParts(level)
-    return (
-      <svg
-        width={13 * scale}
-        height={16 * scale}
-        viewBox="0 0 40 48"
-        aria-label={tier.name}
-      >
-        <defs>
-          <linearGradient
-            id="g"
-            x1="0"
-            y1="48"
-            x2="0"
-            y2="0"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop offset="0" stopColor={colors[0]} />
-            <stop offset="1" stopColor={colors[1]} />
-          </linearGradient>
-        </defs>
-        <path d={SHIELD} fill="url(#g)" />
-        <path
-          d={BEVEL}
-          fill="none"
-          stroke="#fff"
-          strokeOpacity=".35"
-          strokeWidth="1"
-        />
-        <path
-          d={glyph}
-          fill="none"
-          stroke="#fff"
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    )
+    return tierIcon(level, tier.name, scale)
   }
 
   return await generate(
