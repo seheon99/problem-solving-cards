@@ -56,9 +56,10 @@ app.get('/solvedac/profile/:handle', async (request, reply) => {
     return reply.code(400).send('Invalid Color, Must be dark or light')
   const isDark = color === 'light' ? false : true
 
-  const _size = parseInt(size ?? '100')
-  if (_size < 100 || _size > 500)
-    return reply.code(400).send('Invalid Size, Must be between 100 and 500')
+  // 200 → 720×200, the same width as the summary and streak cards
+  const _size = parseInt(size ?? '200')
+  if (_size < 100 || _size > 1000)
+    return reply.code(400).send('Invalid Size, Must be between 100 and 1000')
 
   const data = await requestManager.getUser(handle)
 

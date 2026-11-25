@@ -143,3 +143,31 @@ test('renders when solved.ac omits optional numbers (live 500 regression)', asyn
   const svg = await profileCard({ data: partial, size: 100, isDark: true })
   assert.match(svg, /^<svg\b/)
 })
+
+test('a short handle is laid out at full width, not ellipsised', async (t) => {
+  const satori = require('satori').default
+  const { readFileSync } = require('node:fs')
+  const { join } = require('node:path')
+  const renderer = require('../src/cards')
+  const widths = []
+  t.mock.method(renderer, 'generate', (element, size) =>
+    satori(element, {
+      height: size,
+      fonts: [
+        {
+          name: 'Pretendard-SemiBold',
+          data: readFileSync(
+            join(__dirname, '../fonts/Pretendard-SemiBold.otf'),
+          ),
+        },
+      ],
+      onNodeDetected: (node) => {
+        if (node.type === 'span' && node.textContent === 'seheon99')
+          widths.push(node.width)
+      },
+    }),
+  )
+  const svg = await profileCard({ data: user, size: 200, isDark: true })
+  assert.match(svg, /^<svg width="720" height="200"/)
+  assert.ok(widths[0] > 300, `handle box ${widths[0]}px`)
+})
