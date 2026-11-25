@@ -1,9 +1,9 @@
 // Original tier badge: a shield with the tier level drawn as single pen strokes,
 // so the whole badge can be "drawn" with stroke-dashoffset. viewBox 0 0 40 48.
 
-const SHIELD =
+export const SHIELD =
   'M6 2H34A4 4 0 0 1 38 6V22C38 33.5 30.5 41 20 46C9.5 41 2 33.5 2 22V6A4 4 0 0 1 6 2Z'
-const BEVEL =
+export const BEVEL =
   'M8 6H32A2 2 0 0 1 34 8V22C34 31 28.5 37 20 41.5C11.5 37 6 31 6 22V8A2 2 0 0 1 8 6Z'
 
 const GLYPHS: Record<string, string> = {
