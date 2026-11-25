@@ -120,3 +120,12 @@ test('tier badge shows the level within each tier group', () => {
   }
   assert.notDeepEqual(badgeParts(1).colors, badgeParts(6).colors)
 })
+
+test('laurel grows from level V to level I, Master largest, unrated none', () => {
+  const { badgeParts } = require('../src/cards/tierBadge')
+  const laurel = (t) => badgeParts(t).laurel
+  assert.deepEqual([1, 2, 3, 4, 5].map(laurel), [1, 2, 3, 4, 5]) // Bronze V..I
+  assert.equal(laurel(26), 1) // Ruby V
+  assert.equal(laurel(0), 0)
+  assert.ok(laurel(31) > laurel(30))
+})
