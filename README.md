@@ -9,6 +9,7 @@ Pick a card below, copy its snippet, and replace `HANDLE` with a solved.ac handl
 - [Problems](#problems): difficulty distribution
 - [Streak](#streak): a year of daily activity
 - [Rating](#rating): rating over the past year
+- [Summary](#summary): how your rating is made up
 
 ---
 
@@ -100,6 +101,28 @@ Your rating over the past year on tier-coloured bands, with your current rating,
 ```
 
 560×200px by default; `size` sets the height from 200 to 1000.
+
+## Summary
+
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://solvedac-cards.seheon.kr/summary/seheon99?color=light">
+  <img alt="Summary card" src="https://solvedac-cards.seheon.kr/summary/seheon99">
+</picture>
+
+How your rating is made up, and what moves it next:
+
+- **다음 티어**: points left to the next tier, with progress through your current one.
+- **레이팅 구성**: the three parts of your rating, each against its maximum: 상위 100문제의 난이도 합, CLASS and 문제수에 따른 보너스, with how many more problems raise the bonus.
+- **난이도 별 얻게 될 점수**: what one solve of each level adds, for the ten levels above the lowest problem in your top 100. Your own tier is highlighted.
+- The bars grow one after another.
+
+The "다음 점수까지" count appears only while the bonus formula matches the value solved.ac reports.
+
+```md
+![Summary](https://solvedac-cards.seheon.kr/summary/HANDLE)
+```
+
+704×200px by default; `size` sets the height from 200 to 1000.
 
 ---
 

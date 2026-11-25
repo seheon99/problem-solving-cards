@@ -2,6 +2,7 @@ import { problemCard } from './cards/problems'
 import { profileCard } from './cards/profile'
 import { ratingCard } from './cards/rating'
 import { kstToday, streakCard, streakRange } from './cards/streak'
+import { summaryCard } from './cards/summary'
 import { tagCard } from './cards/tags'
 import CacheManager from './structures/Cache'
 import RequestManager, { isValidHandle } from './structures/Request'
@@ -224,6 +225,23 @@ app.get('/rating/:handle', async (request, reply) => {
         ratingCard,
       ),
     )
+})
+
+app.get('/summary/:handle', async (request, reply) => {
+  const { handle } = request.params as { handle?: string }
+  if (!handle || !isValidHandle(handle))
+    return reply.code(400).send('Invalid User ID')
+  const opts = parseCommon(request.query as object, 200, 1000, 200)
+  if (typeof opts === 'string') return reply.code(400).send(opts)
+
+  const user = await requestManager.getUser(handle)
+  if (!user) return reply.code(404).send('User Not Found')
+
+  reply
+    .code(200)
+    .type('image/svg+xml')
+    .header('Cache-Control', 'public, max-age=0, must-revalidate')
+    .send(await cacheManager.generateCachedCard({ user, ...opts }, summaryCard))
 })
 
 app.listen({ port: 8000, host: '0.0.0.0' }, (err) => {

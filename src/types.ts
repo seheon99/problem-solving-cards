@@ -9,6 +9,7 @@ export type User = {
   tier: number
   rating: number
   ratingByProblemsSum: number
+  ratingProblemsCutoff?: number
   ratingByClass: number
   ratingBySolvedCount: number
   ratingByVoteCount: number
