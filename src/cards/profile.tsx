@@ -142,8 +142,9 @@ export const profileCard = async (params: {
         height: size,
         padding: 12 * scale,
         backgroundColor: base,
-        border: `${scale}px solid ${border}`,
-        borderRadius: 16 * scale,
+        // profile units are size/100 (others use size/200): halve so the frame matches at size 200
+        border: `${0.5 * scale}px solid ${border}`,
+        borderRadius: 8 * scale,
         color: text,
         fontSize: 12 * scale,
       }}
