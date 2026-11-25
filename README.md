@@ -140,7 +140,7 @@ Your LeetCode solved count split by difficulty, against LeetCode's totals, with 
 ![LeetCode](https://ps-cards.seheon.kr/leetcode/HANDLE)
 ```
 
-560×200px by default; `size` sets the height from 200 to 1000.
+720×200px by default, the same width as the Profile and Summary cards; `size` sets the height from 200 to 1000.
 
 ---
 
