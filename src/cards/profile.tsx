@@ -2,164 +2,180 @@ import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
 
+const MASTER_GRADIENT = 'linear-gradient(90deg, #ff7ca8, #b491ff, #7cf9ff)'
+
 export const profileCard = async (params: {
   data: User
   size: number
   isDark: boolean
 }) => {
   const { data, size, isDark } = params
-  const sizeConv = size / 100
-  const { base, crust, text, sub } = themeMapping.get(isDark)!
+  const scale = size / 100
+  const { base, crust, mantle, text, sub } = themeMapping.get(isDark)!
+  const muted = isDark ? sub : '#526170'
+  const border = isDark ? '#263747' : '#e4e9ee'
 
-  const tier = tierMapping.get(data.tier)!
-  const nextTier = tierMapping.get(data.tier !== 31 ? data.tier + 1 : 31)!
-  const progress =
-    data.tier === 31
-      ? 100
-      : ((data.rating - tier.rating) / (nextTier.rating - tier.rating)) * 100
+  const tier = tierMapping.get(data.tier) ?? tierMapping.get(0)!
+  const isMaster = data.tier === 31
+  const next = isMaster ? undefined : tierMapping.get(data.tier + 1)
+  const progress = next
+    ? Math.min(
+        100,
+        Math.max(
+          0,
+          ((data.rating - tier.rating) / (next.rating - tier.rating)) * 100,
+        ),
+      )
+    : 100
+  const accent = isMaster
+    ? {
+        backgroundImage: MASTER_GRADIENT,
+        backgroundClip: 'text',
+        color: 'transparent',
+      }
+    : { color: data.tier === 0 ? muted : tier.color }
+  const plus =
+    data.classDecoration === 'gold'
+      ? '++'
+      : data.classDecoration === 'silver'
+      ? '+'
+      : ''
+  const fmt = (n: number) => n.toLocaleString('en-US')
 
-  const displayProgress = progress === 0 ? 0 : Math.max(progress, 10)
+  const stats: [string, string, string?][] = [
+    ['해결', fmt(data.solvedCount)],
+    [
+      '클래스',
+      `${data.class}${plus}`,
+      data.class ? classMapping.get(data.class) : muted,
+    ],
+    ['순위', `#${fmt(data.rank)}`],
+    ['스트릭', `${fmt(data.maxStreak)}일`],
+  ]
 
-  const avatarStyle = {
+  const avatar = {
+    width: 76 * scale,
+    height: 76 * scale,
     flexShrink: 0,
-    width: 76 * sizeConv,
-    height: 76 * sizeConv,
-    margin: 12 * sizeConv,
-    borderRadius: 12 * sizeConv,
-    boxShadow: `0px 0px ${5 * sizeConv}px ${2 * sizeConv}px ${tier.color}`,
+    borderRadius: 12 * scale,
+    border: `${2 * scale}px solid ${isMaster ? '#b491ff' : tier.color}`,
   }
 
   return await generate(
     <div
       style={{
         display: 'flex',
-        flexDirection: 'row',
         alignItems: 'center',
+        gap: 12 * scale,
+        width: 360 * scale,
+        height: size,
+        padding: 12 * scale,
         backgroundColor: base,
-        borderRadius: 10 * sizeConv,
-        fontSize: 14 * sizeConv,
+        border: `${scale}px solid ${border}`,
+        borderRadius: 16 * scale,
+        color: text,
+        fontSize: 12 * scale,
       }}
     >
       {/* ponytail: profileImageUrl is a data URI, or null when static.solved.ac refuses us */}
       {data.profileImageUrl ? (
-        <img
-          src={data.profileImageUrl}
-          style={avatarStyle}
-        />
+        <img src={data.profileImageUrl} style={avatar} />
       ) : (
-        <div style={{ ...avatarStyle, backgroundColor: tier.color }} />
+        <div style={{ ...avatar, display: 'flex', backgroundColor: mantle }} />
       )}
       <div
         style={{
           display: 'flex',
-          flexGrow: 1,
-          flexShrink: 1,
           flexDirection: 'column',
-          marginLeft: 3 * sizeConv,
-          marginRight: 15 * sizeConv,
-          color: text,
+          justifyContent: 'space-between',
+          flexGrow: 1,
+          minWidth: 0,
+          height: 76 * scale,
         }}
       >
-        <div style={{ display: 'flex' }}>
-          {data.handle} -
-          <div
-            style={{
-              display: 'flex',
-              marginLeft: 4 * sizeConv,
-              ...(data.tier === 31
-                ? {
-                    background:
-                      'linear-gradient(0deg, #ff7ca8, #b491ff, #7cf9ff)',
-                    WebkitTextFillColor: 'transparent',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                  }
-                : {
-                    color: tier.color,
-                  }),
-            }}
-          >
-            {tier.name}
-          </div>
-        </div>
-        <div style={{ display: 'flex', fontSize: 12 * sizeConv }}>
-          Rating:
-          <div
-            style={{
-              display: 'flex',
-              marginLeft: 4 * sizeConv,
-              ...(data.tier === 31
-                ? {
-                    background:
-                      'linear-gradient(0deg, #ff7ca8, #b491ff, #7cf9ff)',
-                    WebkitTextFillColor: 'transparent',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                  }
-                : {
-                    color: tier.color,
-                  }),
-            }}
-          >
-            {data.rating}
-          </div>
-        </div>
-        <div style={{ display: 'flex', fontSize: 12 * sizeConv }}>
-          Solved:
-          <div
-            style={{
-              display: 'flex',
-              color: sub,
-              marginLeft: 4 * sizeConv,
-            }}
-          >
-            {data.solvedCount}
-          </div>
-        </div>
         <div
           style={{
             display: 'flex',
-            fontSize: 12 * sizeConv,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 8 * scale,
           }}
         >
-          Class:
+          <span
+            style={{
+              fontSize: 15 * scale,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {data.handle}
+          </span>
+          <span style={{ fontSize: 11 * scale, flexShrink: 0, ...accent }}>
+            {tier.name}
+          </span>
+        </div>
+        <div
+          style={{ display: 'flex', flexDirection: 'column', gap: 3 * scale }}
+        >
           <div
             style={{
               display: 'flex',
-              color: classMapping.get(data.class)!,
-              marginLeft: 4 * sizeConv,
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
             }}
           >
-            {data.class}
-            {'+'.repeat(
-              data.classDecoration === 'none'
-                ? 0
-                : data.classDecoration === 'silver'
-                ? 1
-                : 2,
+            <span style={{ fontSize: 18 * scale, ...accent }}>
+              {fmt(data.rating)}
+            </span>
+            <span style={{ fontSize: 9 * scale, color: muted }}>
+              {next
+                ? `${next.name}까지 ${fmt(next.rating - data.rating)}`
+                : 'MAX'}
+            </span>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              height: 5 * scale,
+              borderRadius: 3 * scale,
+              backgroundColor: isDark ? crust : mantle,
+            }}
+          >
+            {/* ponytail: satori emits NaN for a zero-width gradient */}
+            {progress > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  width: `${progress}%`,
+                  borderRadius: 3 * scale,
+                  backgroundImage: tier.gradient,
+                }}
+              />
             )}
           </div>
         </div>
-        <div
-          style={{
-            display: 'flex',
-            height: 10 * sizeConv,
-            borderRadius: 5 * sizeConv,
-            marginTop: 5 * sizeConv,
-            backgroundColor: crust,
-            width: '100%',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              borderRadius: 5 * sizeConv,
-              width: `${displayProgress}%`,
-              background: tier.gradient,
-            }}
-          />
+        <div style={{ display: 'flex', gap: 4 * scale }}>
+          {stats.map(([label, value, color]) => (
+            <div
+              key={label}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                flex: 1,
+                minWidth: 0,
+                padding: `${2 * scale}px 0`,
+                borderRadius: 5 * scale,
+                backgroundColor: mantle,
+              }}
+            >
+              <span style={{ fontSize: 8 * scale, color: muted }}>{label}</span>
+              <span style={{ fontSize: 10 * scale, color: color ?? text }}>
+                {value}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>,
