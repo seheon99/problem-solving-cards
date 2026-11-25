@@ -100,25 +100,8 @@ export default class RequestManager {
       ...user,
       rank,
       classDecoration: user.classPlus ? 'silver' : 'none',
-      profileImageUrl: await this.fetchImage(user.profileImageUrl),
-    }
-  }
-
-  // satori can't size an image it can't download, so inline it, or return null to draw a placeholder
-  private async fetchImage(url: string | null) {
-    if (!url) return null
-
-    try {
-      const res = await axios.get<ArrayBuffer>(url, {
-        responseType: 'arraybuffer',
-        timeout: 5000,
-      })
-      const type = res.headers['content-type']
-      if (!String(type).startsWith('image/')) return null
-
-      return `data:${type};base64,${Buffer.from(res.data).toString('base64')}`
-    } catch {
-      return null
+      // static.solved.ac blocks servers (Cloudflare 403), and the card shows the tier crest instead
+      profileImageUrl: null,
     }
   }
 

@@ -19,11 +19,12 @@ const TAG = {
 }
 const flameTag = String(TAG.tiles[3] * TAG.flame)
 const SHINE = 18 // shine band width
+const CREST = 76 // crest slot, where the avatar used to be
 const DONE = 1.5 // count-up and bar finish here (s)
 
 const animation = (o: {
   scale: number
-  ring: string
+  glowColor: string
   glow: boolean
   master: boolean
   travel: number
@@ -35,7 +36,6 @@ const animation = (o: {
 @keyframes show{from,to{opacity:1}}
 @keyframes hide{from,to{opacity:0}}
 @keyframes pop{0%{opacity:0;transform:scale(.6)}70%{opacity:1;transform:scale(1.15)}}
-@keyframes draw{from{stroke-dashoffset:1}}
 @keyframes shine{0%{opacity:0;transform:none}20%{opacity:1}40%,100%{opacity:0;transform:translateX(${
     o.travel
   }px)}}
@@ -64,30 +64,19 @@ ${TAG.tiles
     DONE + 0.39
   }s both,flicker 1.2s ${DONE + 0.8}s ease-in-out infinite}
 [opacity="${TAG.shine}"]{animation:shine 4s ${DONE + 0.5}s ease-in-out infinite}
-#ring{animation:draw 1.2s .3s cubic-bezier(.2,.8,.2,1) both${
-    o.glow ? ';filter:url(#glow)' : ''
-  }}
-${BADGE_CSS}
+${o.glow ? '#badge-shield{filter:url(#glow)}\n' : ''}${BADGE_CSS}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;filter:none!important}}
 </style><defs>
 <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="0" stdDeviation="${
     2 * s
   }" flood-color="${
-    o.ring
+    o.glowColor
   }"><animate attributeName="stdDeviation" values="${s};${
     4 * s
   };${s}" dur="2.5s" repeatCount="indefinite"/></feDropShadow></filter>
 <filter id="hue"><feColorMatrix type="hueRotate" values="0"><animate attributeName="values" from="0" to="360" dur="6s" repeatCount="indefinite"/></feColorMatrix></filter>
 </defs>`
 }
-
-// Ring traced over the avatar border; position follows the card's padding + border.
-const ringRect = (s: number, color: string) =>
-  `<rect id="ring" x="${14 * s}" y="${13 * s}" width="${74 * s}" height="${
-    74 * s
-  }" rx="${11 * s}" fill="none" stroke="${color}" stroke-width="${
-    2 * s
-  }" pathLength="1" stroke-dasharray="1"/>`
 
 // Small flame for the streak tile (24x24 viewBox).
 const FLAME =
@@ -126,7 +115,7 @@ export const profileCard = async (params: {
       : data.classDecoration === 'silver'
       ? '+'
       : ''
-  const ring = isMaster ? '#b491ff' : data.tier === 0 ? border : tier.color
+  const glowColor = isMaster ? '#b491ff' : tier.color
   const fillWidth = (246 * scale * progress) / 100
   const shine = fillWidth > 3 * SHINE * scale
   // solved.ac v4 can omit fields (live crash on rank/maxStreak); show a dash instead
@@ -142,14 +131,6 @@ export const profileCard = async (params: {
     ['순위', data.rank == null ? '–' : `#${fmt(data.rank)}`],
     ['스트릭', data.maxStreak == null ? '–' : `${fmt(data.maxStreak)}일`],
   ]
-
-  const avatar = {
-    width: 76 * scale,
-    height: 76 * scale,
-    flexShrink: 0,
-    borderRadius: 12 * scale,
-    border: `${2 * scale}px solid transparent`,
-  }
 
   const svg = await generate(
     <div
@@ -167,24 +148,15 @@ export const profileCard = async (params: {
         fontSize: 12 * scale,
       }}
     >
-      {/* ponytail: profileImageUrl is a data URI, or null when static.solved.ac refuses us */}
-      {data.profileImageUrl ? (
-        <img src={data.profileImageUrl} style={avatar} />
-      ) : (
-        <div
-          style={{
-            ...avatar,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: mantle,
-            color: muted,
-            fontSize: 32 * scale,
-          }}
-        >
-          {data.handle[0]?.toUpperCase()}
-        </div>
-      )}
+      {/* the tier crest is spliced into this slot after layout */}
+      <div
+        style={{
+          display: 'flex',
+          width: CREST * scale,
+          height: CREST * scale,
+          flexShrink: 0,
+        }}
+      />
       <div
         style={{
           display: 'flex',
@@ -346,7 +318,7 @@ export const profileCard = async (params: {
   )
   const css = animation({
     scale,
-    ring,
+    glowColor,
     glow: data.tier >= 21, // Diamond and up
     master: isMaster,
     travel: fillWidth - SHINE * scale,
@@ -355,8 +327,12 @@ export const profileCard = async (params: {
     .replace(/^<svg[^>]*>/, (open) => open + css)
     .replace(
       /<\/svg>$/,
-      ringRect(scale, ring) +
-        badgeSvg(data.tier, 60 * scale, 62 * scale, 34 * scale) +
-        '</svg>',
+      // crest frame is 60x54, scaled to the slot's width and centred vertically
+      badgeSvg(
+        data.tier,
+        13 * scale,
+        (13 + (CREST - CREST * 0.9) / 2) * scale,
+        CREST * scale,
+      ) + '</svg>',
     )
 }
