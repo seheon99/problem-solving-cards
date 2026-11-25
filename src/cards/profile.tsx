@@ -2,6 +2,16 @@ import { generate } from '.'
 import { classMapping, themeMapping, tierMapping } from '../constants'
 import type { User } from '../types'
 
+// ponytail: satori can't emit animation, so CSS is spliced into its output.
+// The tier bar is the only element filled with a satori gradient pattern.
+const ANIMATION = `<style>
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+@keyframes grow{from{transform:scaleX(0)}}
+svg>*{animation:fade .6s ease-out both}
+[fill^="url(#satori_pattern"]{transform-box:fill-box;transform-origin:left;animation:grow 1.2s .3s cubic-bezier(.2,.8,.2,1) both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>`
+
 export const profileCard = async (params: {
   data: User
   size: number
@@ -56,7 +66,7 @@ export const profileCard = async (params: {
     border: `${2 * scale}px solid ${isMaster ? '#b491ff' : tier.color}`,
   }
 
-  return await generate(
+  const svg = await generate(
     <div
       style={{
         display: 'flex',
@@ -176,4 +186,5 @@ export const profileCard = async (params: {
     </div>,
     size,
   )
+  return svg.replace(/^<svg[^>]*>/, (open) => open + ANIMATION)
 }

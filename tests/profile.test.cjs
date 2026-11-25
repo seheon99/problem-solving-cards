@@ -42,3 +42,10 @@ test('content stays inside the card for every tier', async () => {
     assert.ok(Math.max(...widths) <= 720, `overflow ${Math.max(...widths)}`)
   }
 })
+
+test('animates the card and tier bar', async () => {
+  const svg = await profileCard({ data: user, size: 100, isDark: true })
+  assert.match(svg, /^<svg[^>]*><style>/)
+  assert.ok(svg.includes('[fill^="url(#satori_pattern"]'))
+  assert.match(svg, /<path[^>]*fill="url\(#satori_pattern/)
+})
