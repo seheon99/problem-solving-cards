@@ -38,7 +38,7 @@ export const profileCard = async (params: {
   const fmt = (n: number) => n.toLocaleString('en-US')
 
   const stats: [string, string, string?][] = [
-    ['해결', fmt(data.solvedCount)],
+    ['푼 문제', fmt(data.solvedCount)],
     [
       '클래스',
       `${data.class}${plus}`,
