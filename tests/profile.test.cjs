@@ -136,3 +136,10 @@ test('looping spin never collapses the badge at its loop boundary', () => {
   assert.match(spin, /^0%[^{]*\{transform:scaleX\(1\)/)
   assert.match(spin, /100%\{transform:scaleX\(1\)/)
 })
+
+test('renders when solved.ac omits optional numbers (live 500 regression)', async () => {
+  const { rank, maxStreak, ...partial } = user
+  void rank, maxStreak
+  const svg = await profileCard({ data: partial, size: 100, isDark: true })
+  assert.match(svg, /^<svg\b/)
+})

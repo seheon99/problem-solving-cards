@@ -16,13 +16,13 @@ export type User = {
   classDecoration: 'none' | 'silver' | 'gold'
   rivalCount: number
   reverseRivalCount: number
-  maxStreak: number
+  maxStreak?: number
   coins: number
   stardusts: number
   joinedAt: string
   bannedUntil: string
   proUntil: string
-  rank: number
+  rank?: number
 }
 
 export type HexColorString = `#${string}`
